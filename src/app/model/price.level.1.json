@@ -1,0 +1,94 @@
+{
+  "Price": {
+    "title": "Price. Details",
+    "description": "A class to describe a price, expressed in a data structure containing multiple properties (compare with UnstructuredPrice).",
+    "required": [
+      "PriceAmount"
+    ],
+    "properties": {
+      "UBLExtensions": {
+        "title": "UBLExtensions",
+        "description": "An optional set of extensions to the committee model",
+        "items": {
+          "$ref": "../common/UBL-CommonExtensionComponents-2.3.json#/definitions/UBLExtensions"
+        },
+        "maxItems": 1,
+        "minItems": 1,
+        "type": "array"
+      },
+      "PriceAmount": {
+        "title": "Price. Price Amount. Amount",
+        "description": "The amount of the price.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/PriceAmount"
+      },
+      "BaseQuantity": {
+        "title": "Price. Base_ Quantity. Quantity",
+        "description": "The quantity at which this price applies.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/BaseQuantity"
+      },
+      "PriceChangeReason": {
+        "title": "Price. Price Change_ Reason. Text",
+        "description": "A reason for a price change.",
+        "items": {
+          "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/PriceChangeReason"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "PriceTypeCode": {
+        "title": "Price. Price Type Code. Code",
+        "description": "The type of price, expressed as a code.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/PriceTypeCode"
+      },
+      "PriceType": {
+        "title": "Price. Price Type. Text",
+        "description": "The type of price, expressed as text.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/PriceType"
+      },
+      "OrderableUnitFactorRate": {
+        "title": "Price. Orderable Unit Factor. Rate",
+        "description": "The factor by which the base price unit can be converted to the orderable unit.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/OrderableUnitFactorRate"
+      },
+      "ValidityPeriod": {
+        "title": "Price. Validity_ Period. Period",
+        "description": "A period during which this price is valid.",
+        "items": {
+          "$ref": "#/definitions/ValidityPeriod"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "PriceList": {
+        "title": "Price. Price List",
+        "description": "Information about a price list applicable to this price.",
+        "$ref": "#/definitions/PriceList"
+      },
+      "AllowanceCharge": {
+        "title": "Price. Allowance Charge",
+        "description": "An allowance or charge associated with this price.",
+        "items": {
+          "$ref": "#/definitions/AllowanceCharge"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "PricingExchangeRate": {
+        "title": "Price. Pricing_ Exchange Rate. Exchange Rate",
+        "description": "The exchange rate applicable to this price, if it differs from the exchange rate applicable to the document as a whole.",
+        "$ref": "#/definitions/PricingExchangeRate"
+      },
+      "AlternativeCurrencyPrice": {
+        "title": "Price. Alternative Currency_ Price. Price",
+        "description": "The price expressed in an alternative currency",
+        "items": {
+          "$ref": "#/definitions/AlternativeCurrencyPrice"
+        },
+        "minItems": 1,
+        "type": "array"
+      }
+    },
+    "additionalProperties": false,
+    "type": "object"
+  }
+}

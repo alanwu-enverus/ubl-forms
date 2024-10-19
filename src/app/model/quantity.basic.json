@@ -1,0 +1,28 @@
+{
+  "QuantityType": {
+    "title": "Quantity. Type",
+    "description": "A counted number of non-monetary units possibly including fractions.",
+    "required": [
+      "_"
+    ],
+    "properties": {
+      "_": {
+        "type": "number"
+      },
+      "unitCode": {
+        "type": "string"
+      },
+      "unitCodeListID": {
+        "type": "string"
+      },
+      "unitCodeListAgencyID": {
+        "type": "string"
+      },
+      "unitCodeListAgencyName": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "type": "object"
+  }
+}

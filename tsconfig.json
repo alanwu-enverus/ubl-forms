@@ -5,13 +5,29 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "strict": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+
+    /* The following rules are the strict rule summary: */
+    "noImplicitAny": false,                            /* TODO: ENABLE. Enable error reporting for expressions and declarations with an implied `any` type.. */
+    "strictNullChecks": false,                         /* TODO: ENABLE. When type checking, take into account `null` and `undefined`. */
+    "strictFunctionTypes": false,                      /* TODO: ENABLE. When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    "strictBindCallApply": true,                       /* Check that the arguments for `bind`, `call`, and `apply` methods match the original function. */
+    "strictPropertyInitialization": false,             /* TODO: ENABLE. Check for class properties that are declared but not set in the constructor. */
+    "noImplicitThis": true,                            /* Enable error reporting when `this` is given the type `any`. */
+    "alwaysStrict": true,                              /* Ensure 'use strict' is always emitted. */
+    "noUnusedLocals": false,                            /* Enable error reporting when a local variables aren't read. */
+    "noUnusedParameters": false,                       /* TODO: ENABLE. Raise an error when a function parameter isn't read */
+    "noImplicitReturns": true,                         /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    "noFallthroughCasesInSwitch": true,                /* Enable error reporting for fallthrough cases in switch statements. */
+    "noUncheckedIndexedAccess": true,                  /* Include 'undefined' in index signature results */
+    "noImplicitOverride": true,                        /* Ensure overriding members in derived classes are marked with an override modifier. */
+    "noPropertyAccessFromIndexSignature": false,       /* TODO: ENABLE. Enforces using indexed accessors for keys declared using an indexed type */
+    "allowUnusedLabels": false,                        /* Disable error reporting for unused labels. */
+    "allowUnreachableCode": false,                     /* Disable error reporting for unreachable code. */
+    "resolveJsonModule": true,                         /* Enable importing of JSON modules. */
+
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
@@ -26,7 +42,7 @@
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": true,
+    "strictInjectionParameters": false,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   }

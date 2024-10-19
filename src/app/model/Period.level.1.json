@@ -1,0 +1,64 @@
+{
+  "Period": {
+    "title": "Period. Details",
+    "description": "A class to describe a period of time.",
+    "properties": {
+
+      "UBLExtensions": {
+        "title": "UBLExtensions",
+        "description": "An optional set of extensions to the committee model",
+        "items": {
+          "$ref": "../common/UBL-CommonExtensionComponents-2.3.json#/definitions/UBLExtensions" },
+        "maxItems": 1,
+        "minItems": 1,
+        "type": "array"
+      },
+
+      "StartDate": {
+        "title": "Period. Start Date. Date",
+        "description": "The date on which this period begins.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/StartDate"
+      },
+      "StartTime": {
+        "title": "Period. Start Time. Time",
+        "description": "The time at which this period begins.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/StartTime"
+      },
+      "EndDate": {
+        "title": "Period. End Date. Date",
+        "description": "The date on which this period ends.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/EndDate"
+      },
+      "EndTime": {
+        "title": "Period. End Time. Time",
+        "description": "The time at which this period ends.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/EndTime"
+      },
+      "DurationMeasure": {
+        "title": "Period. Duration. Measure",
+        "description": "The duration of this period, expressed as an ISO 8601 code.",
+        "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/DurationMeasure"
+      },
+      "DescriptionCode": {
+        "title": "Period. Description Code. Code",
+        "description": "A description of this period, expressed as a code.",
+        "items": {
+          "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/DescriptionCode"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "Description": {
+        "title": "Period. Description. Text",
+        "description": "A description of this period, expressed as text.",
+        "items": {
+          "$ref": "UBL-CommonBasicComponents-2.3.json#/definitions/Description"
+        },
+        "minItems": 1,
+        "type": "array"
+      }
+    },
+    "additionalProperties": false,
+    "type": "object"
+  }
+}

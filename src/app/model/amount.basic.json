@@ -1,0 +1,41 @@
+{
+  "AmountType": {
+    "title": "Amount. Type",
+    "description": "A number of monetary units specified using a given unit of currency.",
+    "required": [
+      "_",
+      "currencyID"
+    ],
+    "properties": {
+      "_": {
+        "type": "number"
+      },
+      "currencyCodeListVersionID": {
+        "type": "string"
+      },
+      "currencyID": {
+        "type": "string"
+      },
+      "activeDate": {
+        "type": "string",
+        "format": "date"
+      },
+      "activeTime": {
+        "type": "string",
+        "format": "time"
+      },
+      "expirationDate": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "attachment": {
+        "type": "file"
+      }
+    },
+    "additionalProperties": false,
+    "type": "object"
+  }
+}
