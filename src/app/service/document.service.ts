@@ -53,10 +53,12 @@ export class DocumentService {
     }
 
     required.forEach((requiredName) => {
-      let type = properties[requiredName]['type'];
+      let property = properties[requiredName];
+      let type = property['type'];
       let ref = type === "array" ? properties[requiredName]['items']['$ref'] : properties[requiredName]['$ref'];
       if (this.aggregateService.isCacRef(ref)) {
-        document.properties[requiredName] = this.aggregateService.getRequiredAggregateGroupSchemas(ref);
+        let aggregate = {title: property.title, description: property.description, type: type, key: requiredName, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
+        document.properties[requiredName] = aggregate;
       } else {
         document.properties[requiredName] = this.basicService.getBasicSchemaFromRef(ref);
       }
@@ -81,10 +83,12 @@ export class DocumentService {
     this.docTypesNonRequiredGroupSchemasCache[docTypeName] = {properties: {}};
     propertyNames.forEach((name) => {
       if (!required.includes(name)) {
-        let type = properties[name]['type'];
+        let property = properties[name];
+        let type = property['type'];
         let ref: string = type === "array" ? properties[name]['items']['$ref'] : properties[name]['$ref'];;
         if (this.aggregateService.isCacRef(ref)) {
-          this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = this.aggregateService.getRequiredAggregateGroupSchemas(ref);
+          let aggregate = {title: property.title, description: property.description, type: type, key: name, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
+          this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = aggregate;
         } else {
           this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = this.basicService.getBasicSchemaFromRef(ref);
         }

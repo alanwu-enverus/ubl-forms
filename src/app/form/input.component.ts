@@ -23,7 +23,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
   ],
   template: `
     <div *ngIf="control">
-      @if (input?.value) {
+      @if (control?.value) {
         <label [for]="inputId" class="form__label">{{ label }}</label>
       }
       <input
@@ -33,7 +33,6 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
         [formControl]="control"
         [placeholder]="label"
         class="form__input"
-        #input
       />
 
       <ubl-error *ngIf="control.invalid && control.dirty"

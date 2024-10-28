@@ -1,11 +1,13 @@
 import {Component, ComponentRef, inject, Input, OnInit, viewChild, ViewContainerRef} from '@angular/core';
 import {DocumentService} from "../service/document.service";
-import {removeNulls, UblDocument} from "../service/util";
+import {Aggregate, Properties, removeNulls, UblDocument, UblElementType} from "../service/util";
 import {FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {BasicComponent} from "./basic.component";
 import {JsonPipe} from "@angular/common";
 import {BasicService} from "../service/basic.service";
 import {AggregateService} from "../service/aggregate.service";
+import {SchematicEngineHost} from "@angular/cli/src/command-builder/utilities/schematic-engine-host";
+import {GroupComponent} from "./group.component";
 
 @Component({
   selector: 'ubl-doc',
@@ -37,29 +39,58 @@ export class DocComponent implements OnInit {
   formGroup = new FormGroup({});
   vcr = viewChild('container', {read: ViewContainerRef});
   basicComponentRef?: ComponentRef<BasicComponent>;
+  groupComponentRef?: ComponentRef<GroupComponent>;
 
   async ngOnInit() {
-    this.doc = await this.docService.getDocTypeRequiredSchemas('ApplicationResponse');
+    this.doc = await this.docService.getDocTypeRequiredSchemas('Invoice');
     console.dir(this.doc)
     this.vcr()?.clear()
 
-    this.doc?.required.forEach((requiredName) => {
-      let field = this.doc.properties[requiredName];
-      // if type is object, means it get the basic schema
-      // else this required field has not required fields, so get all non-required fields
+    this.doc?.required.forEach((name) => {
+      const field = this.doc.properties[name];
+      const model = this.model ? this.model[name] : {};
+
       if (field['type'] === 'object') {
-        this.basicComponentRef = this.vcr()?.createComponent(BasicComponent)
-        this.basicComponentRef?.setInput('model', this.model ? this.model[requiredName] : {})
-        this.basicComponentRef?.setInput('schema', field)
-        this.basicComponentRef?.setInput('formGroupKey', requiredName)
-        this.basicComponentRef?.setInput('parentFormGroup', this.formGroup)
-      } else if (Array.isArray(field) && field.length === 0) {
-        // empty array means it has no required fields
-        let nonRequiredFields = this.aggregateService.getNonRequiredAggregateGroupSchemasByName(requiredName)
-        console.log(nonRequiredFields)
+        this.basicComponentRef = this.vcr()?.createComponent(BasicComponent);
+        this.basicComponentRef?.setInput('model', model);
+        this.basicComponentRef?.setInput('schema', field);
+        this.basicComponentRef?.setInput('title', field['title']);
+        this.basicComponentRef?.setInput('formGroupKey', name);
+        this.basicComponentRef?.setInput('parentFormGroup', this.formGroup);
+      } else if (field['type'] === 'array') {
+        this.groupComponentRef = this.vcr()?.createComponent(GroupComponent);
+        this.groupComponentRef?.setInput('model', model);
+        this.groupComponentRef?.setInput('aggregates', field['schemas']);
+        this.groupComponentRef?.setInput('title', field['title']);
+        this.groupComponentRef?.setInput('formGroupKey', name);
+        this.groupComponentRef?.setInput('parentFormGroup', this.formGroup);
+        this.groupComponentRef?.setInput('elementType', UblElementType.ArrayAggregate);
+      } else if (field['type'] === undefined) {
+        const schemas = field['schemas'];
+        if (Array.isArray(schemas) && schemas.length === 0) {
+          const nonRequiredFields = this.aggregateService.getNonRequiredAggregateGroupSchemasByName(name);
+          this.groupComponentRef = this.vcr()?.createComponent(GroupComponent);
+          this.groupComponentRef?.setInput('model', model);
+          this.groupComponentRef?.setInput('aggregates', nonRequiredFields);
+          this.groupComponentRef?.setInput('title', field['title']);
+          this.groupComponentRef?.setInput('formGroupKey', name);
+          this.groupComponentRef?.setInput('parentFormGroup', this.formGroup);
+          this.groupComponentRef?.setInput('elementType', UblElementType.NonRequiredAggregate);
+          console.log(nonRequiredFields);
+        } else if (Array.isArray(schemas) && schemas.length === 1) {
+          this.groupComponentRef = this.vcr()?.createComponent(GroupComponent);
+          this.groupComponentRef?.setInput('model', model);
+          this.groupComponentRef?.setInput('aggregates', schemas);
+          this.groupComponentRef?.setInput('title', field['title']);
+          this.groupComponentRef?.setInput('formGroupKey', name);
+          this.groupComponentRef?.setInput('parentFormGroup', this.formGroup);
+          this.groupComponentRef?.setInput('elementType', UblElementType.RequiredAggregate);
+        }
+      } else {
+        console.log(`cannot handle ${name}`);
       }
-      // todo: handle array type, no-require fields
-    })
+    });
+
   }
 
   protected readonly removeNulls = removeNulls;

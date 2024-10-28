@@ -15,7 +15,7 @@ export {cbc};
 export {qdt};
 export {cec};
 
-export function getRefName (ref: string) {
+export function getRefName(ref: string) {
   return ref.substring(ref.lastIndexOf('/') + 1);
 }
 
@@ -47,7 +47,7 @@ export type cache = {
 }
 
 //host basic schema
-export  type Schema = {
+export type Schema = {
   title: string;
   description: string;
   required: string[];
@@ -56,23 +56,22 @@ export  type Schema = {
       type: string,
       format?: string,
     };
-  }
+  },
+  additionalProperties?: boolean;
 }
 
-//host definitions key->schema
-export type Schemas = {
+//host properties key->schema ?? seems this is only for UblExtension type ??
+export type Properties = {
   [key: string]: Schema
 }
 
-//host document section or aggregate type
-export type Group = {
+//aggregate type
+export type Aggregate = {
+  key: string;
+  schemas: Schema | Schema[] | Aggregate | Aggregate[]; // can be renamed to properties
+  type: string;
   title: string;
   description: string;
-  required: string[];
-  properties: {
-    [key: string]: Group | Group[] | Schemas;
-  },
-  type?: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'integer' | 'email' | 'date' | 'time' | 'datetime-local' | null;
 }
 
 //host document type
@@ -81,20 +80,29 @@ export type UblDocument = {
   description: string;
   required: string[];
   properties: {
-    [key: string]: Group | Group[] | Schemas;
+    [key: string]: Schema | Properties | Aggregate | Aggregate[];
   },
 }
 
+// pass it to ui aggregate component to determine how to render
+export enum UblElementType  {
+  BasicAggregate = 0,
+  RequiredAggregate = 1,
+  NonRequiredAggregate = 2,
+  ArrayAggregate = 3,
+}
+
+
 // todo: should not needed to pass parent formGroup and return new formControl like as real function? is it better
-export function generateControl(formGroup: FormGroup, model: any , name: string, required: boolean){
+export function generateControl(formGroup: FormGroup, model: any, name: string, required: boolean) {
   if (!formGroup.controls[name]) {
     const controlValue = model?.[name] ?? null;
-    formGroup.addControl(name, new FormControl(controlValue, required ? Validators.required: null));
+    formGroup.addControl(name, new FormControl(controlValue, required ? Validators.required : null));
   }
   return formGroup.get(name) as FormControl;
 }
 
-export function generateGroup(formGroup: FormGroup, name: string, required: boolean){
+export function generateGroup(formGroup: FormGroup, name: string, required: boolean) {
   //todo: pass required to force expend
   if (formGroup.controls[name] == undefined) {
     formGroup.addControl(name, new FormGroup({}));
@@ -103,12 +111,12 @@ export function generateGroup(formGroup: FormGroup, name: string, required: bool
 }
 
 
-export function indentString (data: string, count: number, indent = ' ')  {
+export function indentString(data: string, count: number, indent = ' ') {
   indent = indent.repeat(count * 2);
   return `${indent}${data}`;
 };
 
-export function levelString (data: string, count: number, indent = ' ')  {
+export function levelString(data: string, count: number, indent = ' ') {
   indent = indent.repeat(count * 2);
   return `${indent} ${count} : ${data}`;
 };

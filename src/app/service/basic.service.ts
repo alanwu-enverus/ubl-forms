@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {cbc, cct, getRefName, qdt, Schemas, cec, udt} from "./util";
+import {cbc, cct, getRefName, qdt, Properties, cec, udt, Schema} from "./util";
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +21,7 @@ export class BasicService {
   isBasicRef = (ref: string) => this.isCbcRef(ref) || this.isQdtRef(ref) || this.isUdtRef(ref) || this.isCecRef(ref);
 
 
-  getBasicSchemaFromRef(ref: string) :Schemas {
+  getBasicSchemaFromRef(ref: string) : Schema | Properties {
     if(this.isBasicRef(ref)) {
       if (this.isCbcRef(ref)) {
         return this.getCbcSchemaFromRef(ref);
@@ -39,7 +39,7 @@ export class BasicService {
     throw new Error(`getCbcRefSchema -- ${ref} is not cbc`);
   }
 
-  getCbcSchemaFromRef(ref: string): Schemas {
+  getCbcSchemaFromRef(ref: string): Schema | Properties {
     if(this.isCbcRef(ref)){
       let refName = getRefName(ref);
       let cbcRef = cbc.definitions[refName]['$ref'];
@@ -57,7 +57,7 @@ export class BasicService {
     throw new Error(`getCbcRefSchema -- ${ref} is not cbc`);
   }
 
-  getQdtSchemaFromRef(ref: string): Schemas {
+  getQdtSchemaFromRef(ref: string): Schema {
     let qdtRefName = getRefName(ref);
     let udtRef = qdt.definitions[qdtRefName]['$ref'];
     if(this.isUdtRef(udtRef)){
@@ -66,7 +66,7 @@ export class BasicService {
     throw new Error(`getCbcRefSchema -- ${ref} -> ${qdtRefName} -> ${udtRef} is not cct`);
   }
 
-  getUdtSchemaFromRef(ref: string): Schemas {
+  getUdtSchemaFromRef(ref: string): Schema {
     let udtRefName = getRefName(ref);
     let schema =  udt.definitions[udtRefName];
 
@@ -76,12 +76,12 @@ export class BasicService {
     return schema
   }
 
-  getCctSchemaFromRef(ref: string): Schemas {
+  getCctSchemaFromRef(ref: string): Schema {
     let cctRefName = getRefName(ref);
     return cct.definitions[cctRefName];
   }
 
-  getCecSchema(ref: string): Schemas {
+  getCecSchema(ref: string): Properties {
     return cec.definitions[getRefName(ref)];
     // todo: do this later. it is a special case
     //let extension  = cec.definitions[getRefName(ref)]
