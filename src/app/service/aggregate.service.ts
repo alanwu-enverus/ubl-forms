@@ -1,11 +1,141 @@
 import {inject, Injectable} from '@angular/core';
-import {Aggregate, cac, getRefName, levelString} from "./util";
+import {Aggregate, getRefName, levelString} from "./util";
 import {BasicService} from "./basic.service";
+import {cac, Ubl} from "../model/ubl.mdel";
+
+type Property = {
+  title?: string;
+  description?: string;
+  items?: { $ref: string };
+  $ref?: string;
+  required?: string[];
+  properties?: { [key: string]: Property };
+  maxItems?: number;
+  minItems?: number;
+  type: "array" | "object";
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AggregateService {
+  /* following invoice document schema and sample data
+  1. aggregate element has not type, it seems can be return and require 'click-expand' to retrieve the next level details.
+  2. aggregate element has type object or array, it seems can be stop point.
+
+  plan:
+  1. get first levels of aggregate elements from document schema
+      a. if type is object-or-array, and it is basic, return the schema, and marked it as basic
+      b. if type is object-or-array, and it is aggregate, go to the next level then return and mark as aggregate, but stop for type is not object-or-array those need click-expand
+      c. if type is undefined, go to the next level and repeat a and b. from the sample data, it seems that the type is undefined can be skipped the key, and directly go to the ref
+  */
+  isCacRef = (ref: string) => ref.startsWith(`../common/UBL-CommonAggregateComponents-2.3.json`);
+
+  basicService = inject(BasicService);
+
+  aggregateCache: Map<string, Ubl.Aggregate> = new Map();
+  basicCache: Map<string, Ubl.Basic | Ubl.Extension> = new Map();
+
+  getRequiredAggregatesByRef(ref: string) {
+    let cacName = getRefName(ref)
+    let def = this.getOrSetDefinition(cacName);
+    let required = def['required'];
+    let properties = def['properties'];
+    return this.getAggregatesFromSetting(def.title, def.description, properties, required, true);
+  }
+
+  getNonRequiredAggregatesByRef(ref: string) {
+    let name = getRefName(ref)
+    let def = this.getOrSetDefinition(name);
+    let required = def['required'];
+    let properties = def['properties'];
+    return this.getAggregatesFromSetting(def.title, def.description, properties, required, false);
+  }
+
+  getNonRequiredAggregatesByName(name: string) {
+    let def = this.getOrSetDefinition(name);
+    let required = def['required'];
+    let properties = def['properties'];
+    return this.getAggregatesFromSetting(def.title, def.description, properties, required, false);
+  }
+
+  getAggregatesFromSetting(title: string, description: string, properties: Property[], required?: string[], isRequiredOnly: boolean = true) {
+    let prods = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
+    let result: { [key: string]: Ubl.Basic | Ubl.Extension | Ubl.Aggregate | Ubl.Array | Ubl.NextRef } = {};
+
+    prods.forEach((name) => {
+      const type = properties[name].type;
+      const ref = type === "array" ? properties[name].items.$ref : properties[name].$ref;
+      const maxItems = properties[name].maxItems;
+
+      if (type === "array" && maxItems === 1) {
+        if (this.basicService.isBasicRef(ref)) {
+          if (!this.basicCache.has(ref)) {
+            const basic = this.basicService.getBasicByRef(ref);
+            this.basicCache.set(ref, basic);
+          }
+          result[name] = this.basicCache.get(ref);
+        } else if (this.isCacRef(ref)) {
+          if (!this.aggregateCache.has(ref)) {
+            const aggregate = this.getAggregatesFromInternalDef(ref, isRequiredOnly);
+            this.aggregateCache.set(ref, aggregate);
+          }
+          result[name] = this.aggregateCache.get(ref);
+        }
+      } else if (type === "array" || type === "object") {
+        if (this.basicService.isBasicRef(ref)) {
+          if (!this.basicCache.has(ref)) {
+            const basic = this.basicService.getBasicByRef(ref);
+            this.basicCache.set(ref, basic);
+          }
+          result[name] = type === "array" ? {
+            title: properties[name].title,
+            description: properties[name].description,
+            items: this.basicCache.get(ref)
+          } as Ubl.Array : this.basicCache.get(ref);
+        } else if (this.isCacRef(ref)) {
+          if (!this.aggregateCache.has(ref)) {
+            const aggregate = this.getAggregatesFromInternalDef(ref, isRequiredOnly);
+            this.aggregateCache.set(ref, aggregate);
+          }
+          result[name] = type === "array" ? {
+            title: properties[name].title,
+            description: properties[name].description,
+            items: this.aggregateCache.get(ref)
+          } as Ubl.Array : this.aggregateCache.get(ref);
+        }
+      }
+      if (type === undefined && this.basicService.isBasicRef(ref)) {
+        if (!this.basicCache.has(ref)) {
+          const basic = this.basicService.getBasicByRef(ref);
+          this.basicCache.set(ref, basic);
+        }
+        result[name] = this.basicCache.get(ref);
+      } else {
+        result[name] = {$ref: ref} as Ubl.NextRef;
+      }
+    });
+
+    return {
+      title: title,
+      description: description,
+      required: required ?? [],
+      properties: result
+    } as Ubl.Aggregate;
+  }
+
+  getAggregatesFromInternalDef(ref: string, isRequiredOnly: boolean = true) {
+    const refName = getRefName(ref);
+    const def = this.getOrSetDefinition(refName);
+    const required = def?.required || [];
+
+    return this.getAggregatesFromSetting(def.title, def.description, def.properties, required, isRequiredOnly);
+  }
+
+
+  /*
+  * below can be deleted after refactored
+  * */
   definitionsCache: Map<string, any> = new Map();
   schemaCache: Map<string, any> = new Map();
 
@@ -24,9 +154,6 @@ export class AggregateService {
     this.circulars.set('PreviousPriceList', '#/definitions/PreviousPriceList');
   }
 
-  isCacRef = (ref: string) => ref.startsWith(`../common/UBL-CommonAggregateComponents-2.3.json`);
-
-  basicService = inject(BasicService);
 
   getRequiredAggregateGroupSchemas(ref: string) {
     let cacName = getRefName(ref)
@@ -44,7 +171,7 @@ export class AggregateService {
     return this.getConfigFromJsonObjectProperty(properties, required, false);
   }
 
-  private getConfigFromJsonObjectProperty(properties, required?: string[], isRequiredOnly: boolean = true) : Aggregate[] {
+  private getConfigFromJsonObjectProperty(properties, required?: string[], isRequiredOnly: boolean = true): Aggregate[] {
     let ownProds = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
 
     return ownProds.flatMap((name) => {
@@ -99,7 +226,7 @@ export class AggregateService {
   // not sure if necessary to add name to map schemas? otherwise, return an array of schemas
   // if basic schema do not need to name, can pass the name as null, then add condition to only return schemas
   private generateOutput(name: string, val: any, type: string, title: string, description: string) {
-    return val ? {key: name, schemas: val, type: type, title:title, description: description} as Aggregate : null;
+    return val ? {key: name, schemas: val, type: type, title: title, description: description} as Aggregate : null;
   }
 
   private getConfigFromInternalDef(ref: string, isRequiredOnly: boolean = true): any[] {

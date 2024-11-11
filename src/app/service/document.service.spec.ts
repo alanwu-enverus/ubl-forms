@@ -14,26 +14,36 @@ describe('DocumentService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getRequiredSchemas -- ApplicationResponse', async () => {
-    let result = await service.getDocTypeRequiredSchemas('ApplicationResponse');
+  it('getDocumentRequiredSchema -- ApplicationResponse', async () => {
+    let result = await service.getDocumentRequiredSchema('ApplicationResponse');
     expect(result).not.toBeNull();
   });
 
-  it('getNonRequiredSchemas -- ApplicationResponse', async () => {
-    let result = await service.getDocTypeNonRequiredSchemas('ApplicationResponse');
-    expect(result).toBeTruthy();
+  it('getDocumentRequiredSchema -- Invoice', async () => {
+    let result = await service.getDocumentRequiredSchema('Invoice');
+    expect(result).not.toBeNull();
   });
 
-  it('getRequiredSchemas -- Invoice', async () => {
-    let result = await service.getDocTypeRequiredSchemas('Invoice');
-    expect(result).toBeTruthy();
-  });
-
-
-  it('getNonRequiredSchemas -- Invoice', async () => {
-    let result = await service.getDocTypeNonRequiredSchemas('Invoice');
-    expect(result).toBeTruthy();
-  });
+  // it('getRequiredSchemas -- ApplicationResponse', async () => {
+  //   let result = await service.getDocTypeRequiredSchemas('ApplicationResponse');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getNonRequiredSchemas -- ApplicationResponse', async () => {
+  //   let result = await service.getDocTypeNonRequiredSchemas('ApplicationResponse');
+  //   expect(result).toBeTruthy();
+  // });
+  //
+  // it('getRequiredSchemas -- Invoice', async () => {
+  //   let result = await service.getDocTypeRequiredSchemas('Invoice');
+  //   expect(result).toBeTruthy();
+  // });
+  //
+  //
+  // it('getNonRequiredSchemas -- Invoice', async () => {
+  //   let result = await service.getDocTypeNonRequiredSchemas('Invoice');
+  //   expect(result).toBeTruthy();
+  // });
 
   // it('getSchema -- ApplicationResponse', async () => {
   //  let result = await service.getSchema('ApplicationResponse');

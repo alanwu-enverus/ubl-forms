@@ -14,6 +14,14 @@ describe('CbcService', () => {
     expect(service).toBeTruthy();
   });
 
+  it("getBasicByRef -- CustomizationID", async () => {
+    let result = await service.getBasicByRef('../common/UBL-CommonBasicComponents-2.3.json#/definitions/CustomizationID');
+    expect(result).not.toBeNull();
+  });
+
+
+  /* outdate */
+
   it('getCbcRefSchema -- CustomizationID', async () => {
     let result = await service.getBasicSchemaFromRef('../common/UBL-CommonBasicComponents-2.3.json#/definitions/CustomizationID');
     expect(result).not.toBeNull();

@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {BasicService} from "./basic.service";
 import {AggregateService} from "./aggregate.service";
 import {cache, UblDocument} from "./util";
+import {Ubl} from "./../model/ubl.mdel";
 
 
 @Injectable({
@@ -17,7 +18,6 @@ export class DocumentService {
 
   // this service provides 1. get required schema for a document type 2. get non-required schema for a document type
 
-  // party (aggregate) does not have required field, so may be return non-required fields
 
   /*todo: maybe
      1. array that has max is 1, not be an array
@@ -32,20 +32,21 @@ export class DocumentService {
   basicService = inject(BasicService);
   aggregateService = inject(AggregateService);
 
+  documentCache: Ubl.Cache<Ubl.Document> = {}
+
   constructor() {
   }
 
-  async getDocTypeRequiredSchemas(docTypeName: string): Promise<UblDocument> {
-    if (this.docTypesRequiredGroupSchemasCache[docTypeName]) {
-      return this.docTypesRequiredGroupSchemasCache[docTypeName];
+  async getDocumentRequiredSchema(docTypeName: string): Promise<Ubl.Document> {
+    if (this.documentCache[docTypeName]) {
+      return this.documentCache[docTypeName];
     }
-
     let doc = await this.getSchemaDocument(docTypeName);
     let docName = doc.required[0];
     let definitions = doc.definitions[docName];
     let required: string[] = definitions['required'];
     let properties = definitions['properties'];
-    let document: UblDocument = {
+    let document: Ubl.Document = {
       title: definitions['title'],
       description: definitions['description'],
       required: required,
@@ -57,49 +58,19 @@ export class DocumentService {
       let type = property['type'];
       let ref = type === "array" ? properties[requiredName]['items']['$ref'] : properties[requiredName]['$ref'];
       if (this.aggregateService.isCacRef(ref)) {
-        let aggregate = {title: property.title, description: property.description, type: type, key: requiredName, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
-        document.properties[requiredName] = aggregate;
-      } else {
-        document.properties[requiredName] = this.basicService.getBasicSchemaFromRef(ref);
-      }
-    });
-
-    this.docTypesRequiredGroupSchemasCache[docTypeName] = document;
-    return this.docTypesRequiredGroupSchemasCache[docTypeName];
-  }
-
-  async getDocTypeNonRequiredSchemas(docTypeName: string) {
-    if (this.docTypesNonRequiredGroupSchemasCache[docTypeName]) {
-      return this.docTypesNonRequiredGroupSchemasCache[docTypeName];
-    }
-
-    let doc = await this.getSchemaDocument(docTypeName);
-    let docName = doc.required[0];
-    let definitions = doc.definitions[docName];
-    let required: string[] = definitions['required'];
-    let properties = definitions['properties'];
-    let propertyNames = Object.keys(properties);
-
-    this.docTypesNonRequiredGroupSchemasCache[docTypeName] = {properties: {}};
-    propertyNames.forEach((name) => {
-      if (!required.includes(name)) {
-        let property = properties[name];
-        let type = property['type'];
-        let ref: string = type === "array" ? properties[name]['items']['$ref'] : properties[name]['$ref'];;
-        if (this.aggregateService.isCacRef(ref)) {
-          let aggregate = {title: property.title, description: property.description, type: type, key: name, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
-          this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = aggregate;
+        let aggregate = this.aggregateService.getRequiredAggregatesByRef(ref);
+        if (aggregate.required?.length == 0 && Object.getOwnPropertyNames(aggregate.properties).length == 0) {
+          document.properties[requiredName] = this.aggregateService.getNonRequiredAggregatesByRef(ref);
         } else {
-          this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = this.basicService.getBasicSchemaFromRef(ref);
+          document.properties[requiredName] = aggregate;
         }
+      } else {
+        document.properties[requiredName] = this.basicService.getBasicByRef(ref);
       }
     });
-    return this.docTypesNonRequiredGroupSchemasCache[docTypeName];
-  }
 
-  // param should be the name of the aggregate group name. e.g. cac:Party
-  getNonRequiredAggregateGroupSchemas(name: string) {
-    return this.aggregateService.getNonRequiredAggregateGroupSchemasByName(name);
+    this.documentCache[docTypeName] = document;
+    return this.documentCache[docTypeName];
   }
 
   private async getSchemaDocument(name: string): Promise<any> {
@@ -116,6 +87,104 @@ export class DocumentService {
     }
     throw new Error(`Schema not found for ${name}`);
   }
+
+  // async getRequiredSchemas(docTypeName: string){
+  //   if (this.documentCache[docTypeName]) {
+  //     return this.documentCache[docTypeName];
+  //   }
+  //
+  //   let doc = await this.getSchemaDocument(docTypeName);
+  //   let docName = doc.required[0];
+  //   let definitions = doc.definitions[docName];
+  //   let required: string[] = definitions['required'];
+  //   let properties = definitions['properties'];
+  //   let document: Ubl.Document = {
+  //     title: definitions['title'],
+  //     description: definitions['description'],
+  //     required: required,
+  //     properties: {}
+  //   }
+  //   required.forEach((requiredName) => {
+  //     let property = properties[requiredName];
+  //     let type = property['type'];
+  //     let ref = type === "array" ? properties[requiredName]['items']['$ref'] : properties[requiredName]['$ref'];
+  //     if (this.aggregateService.isCacRef(ref)) {
+  //       let aggregate = {title: property.title, description: property.description, type: type, key: requiredName, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
+  //       document.properties[requiredName] = aggregate;
+  //     } else {
+  //       document.properties[requiredName] = this.basicService.getBasicSchemaFromRef(ref);
+  //     }
+  //   });
+  // }
+  //
+  // async getDocTypeRequiredSchemas(docTypeName: string): Promise<UblDocument> {
+  //   if (this.docTypesRequiredGroupSchemasCache[docTypeName]) {
+  //     return this.docTypesRequiredGroupSchemasCache[docTypeName];
+  //   }
+  //
+  //   let doc = await this.getSchemaDocument(docTypeName);
+  //   let docName = doc.required[0];
+  //   let definitions = doc.definitions[docName];
+  //   let required: string[] = definitions['required'];
+  //   let properties = definitions['properties'];
+  //   let document: UblDocument = {
+  //     title: definitions['title'],
+  //     description: definitions['description'],
+  //     required: required,
+  //     properties: {}
+  //   }
+  //
+  //   required.forEach((requiredName) => {
+  //     let property = properties[requiredName];
+  //     let type = property['type'];
+  //     let ref = type === "array" ? properties[requiredName]['items']['$ref'] : properties[requiredName]['$ref'];
+  //     if (this.aggregateService.isCacRef(ref)) {
+  //       let aggregate = {title: property.title, description: property.description, type: type, key: requiredName, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
+  //       document.properties[requiredName] = aggregate;
+  //     } else {
+  //       document.properties[requiredName] = this.basicService.getBasicSchemaFromRef(ref);
+  //     }
+  //   });
+  //
+  //   this.docTypesRequiredGroupSchemasCache[docTypeName] = document;
+  //   return this.docTypesRequiredGroupSchemasCache[docTypeName];
+  // }
+  //
+  // async getDocTypeNonRequiredSchemas(docTypeName: string) {
+  //   if (this.docTypesNonRequiredGroupSchemasCache[docTypeName]) {
+  //     return this.docTypesNonRequiredGroupSchemasCache[docTypeName];
+  //   }
+  //
+  //   let doc = await this.getSchemaDocument(docTypeName);
+  //   let docName = doc.required[0];
+  //   let definitions = doc.definitions[docName];
+  //   let required: string[] = definitions['required'];
+  //   let properties = definitions['properties'];
+  //   let propertyNames = Object.keys(properties);
+  //
+  //   this.docTypesNonRequiredGroupSchemasCache[docTypeName] = {properties: {}};
+  //   propertyNames.forEach((name) => {
+  //     if (!required.includes(name)) {
+  //       let property = properties[name];
+  //       let type = property['type'];
+  //       let ref: string = type === "array" ? properties[name]['items']['$ref'] : properties[name]['$ref'];;
+  //       if (this.aggregateService.isCacRef(ref)) {
+  //         let aggregate = {title: property.title, description: property.description, type: type, key: name, schemas: this.aggregateService.getRequiredAggregateGroupSchemas(ref)};
+  //         this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = aggregate;
+  //       } else {
+  //         this.docTypesNonRequiredGroupSchemasCache[docTypeName]['properties'][name] = this.basicService.getBasicSchemaFromRef(ref);
+  //       }
+  //     }
+  //   });
+  //   return this.docTypesNonRequiredGroupSchemasCache[docTypeName];
+  // }
+  //
+  // // param should be the name of the aggregate group name. e.g. cac:Party
+  // getNonRequiredAggregateGroupSchemas(name: string) {
+  //   return this.aggregateService.getNonRequiredAggregateGroupSchemasByName(name);
+  // }
+  //
+
 
   //
   // async getDocTypeRequiredFieldNames(docTypeName: string): Promise<string[]> {

@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
-import {cbc, cct, getRefName, qdt, Properties, cec, udt, Schema} from "./util";
+import {getRefName, Properties, Schema} from "./util";
+import {cbc, cct, cec, qdt, Ubl, udt} from "../model/ubl.mdel";
+import Extension = Ubl.Extension;
+import Basic = Ubl.Basic;
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +23,72 @@ export class BasicService {
 
   isBasicRef = (ref: string) => this.isCbcRef(ref) || this.isQdtRef(ref) || this.isUdtRef(ref) || this.isCecRef(ref);
 
+  getBasicByRef(ref:string) : Ubl.Basic | Ubl.Extension {
+    if(this.isBasicRef(ref)) {
+      if (this.isCbcRef(ref)) {
+        return this.getCbcByRef(ref);
+      } else if (this.isQdtRef(ref)) {
+        return this.getQdtByRef(ref);
+      } else if (this.isUdtRef(ref)) {
+        return this.getUdtByRef(ref);
+      } else if (this.isCctRef(ref)) {
+        return this.getCctByRef(ref);
+      } else if(this.isCecRef(ref)){
+        return this.getExtensionByRef(ref);
+      }
+    }
+
+    throw new Error(`getCbcRefSchema -- ${ref} is not cbc`);
+  }
+  getCbcByRef(ref: string): Ubl.Basic {
+    if(this.isCbcRef(ref)){
+      let refName = getRefName(ref);
+      let cbcRef = cbc.definitions[refName]['$ref'];
+      if(this.isQdtRef(cbcRef)){
+        return this.getQdtSchemaFromRef(cbcRef);
+      } else if(this.isUdtRef(cbcRef)){
+        return this.getUdtSchemaFromRef(cbcRef);
+      } else if(this.isCctRef(cbcRef)){
+        return this.getCctSchemaFromRef(cbcRef);
+      }
+      throw new Error(`getCbcRefSchema --  ${cbcRef}  is qdt or udt`);
+    } else if(this.isCecRef(ref)) {
+      return this.getCecSchema(ref);
+    }
+    throw new Error(`getCbcRefSchema -- ${ref} is not cbc`);
+  }
+
+  getQdtByRef(ref: string): Ubl.Basic {
+    let qdtRefName = getRefName(ref);
+    let udtRef = qdt.definitions[qdtRefName]['$ref'];
+    if(this.isUdtRef(udtRef)){
+      return this.getUdtSchemaFromRef(udtRef);
+    }
+    throw new Error(`getCbcRefSchema -- ${ref} -> ${qdtRefName} -> ${udtRef} is not cct`);
+  }
+
+  getUdtByRef(ref: string): Ubl.Basic {
+    let udtRefName = getRefName(ref);
+    let schema =  udt.definitions[udtRefName];
+
+    if(schema['$ref']){
+      return this.getCctSchemaFromRef(schema['$ref']);
+    }
+    return schema
+  }
+
+  getCctByRef(ref: string): Ubl.Basic {
+    let cctRefName = getRefName(ref);
+    return cct.definitions[cctRefName];
+  }
+
+  getExtensionByRef(ref: string): Ubl.Extension {
+    return cec.definitions[getRefName(ref)];
+  }
+
+  /*
+  * below all methods can be deleted after refactored
+  * */
 
   getBasicSchemaFromRef(ref: string) : Schema | Properties {
     if(this.isBasicRef(ref)) {
@@ -81,7 +150,7 @@ export class BasicService {
     return cct.definitions[cctRefName];
   }
 
-  getCecSchema(ref: string): Properties {
+  getCecSchema(ref: string): Schema {
     return cec.definitions[getRefName(ref)];
     // todo: do this later. it is a special case
     //let extension  = cec.definitions[getRefName(ref)]
