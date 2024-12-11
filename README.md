@@ -23,3 +23,12 @@ plan:
 
 note:
 1. set "resolveJsonModule": true, tsconfig.json  to import json file in typescript
+
+ref: https://www.youtube.com/watch?v=ncbftt3NWVo
+
+
+Dec 8, 2024
+todo:
+1. move the 'expand' to 'up' position, because after expanded, it will not be 'expand' anymore. then 'up' or 'down' will show
+2. some nested aggregate with empty value can not be collapsed, need to fix it
+3. in output json, some empty value can not be removed. need to fix it

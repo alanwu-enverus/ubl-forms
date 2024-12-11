@@ -1,7 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {BasicService} from "./basic.service";
 import {AggregateService} from "./aggregate.service";
-import {cache, UblDocument} from "./util";
 import {Ubl} from "./../model/ubl.mdel";
 
 
@@ -25,14 +24,15 @@ export class DocumentService {
      3. if required field, but the schema (e.g party or Id) has not required field, then get all non-required fields
 
   */
-  documentSchemaCache: cache = {}
-  docTypesRequiredGroupSchemasCache: cache = {}
-  docTypesNonRequiredGroupSchemasCache: cache = {}
+  // documentSchemaCache: cache = {}
+  // docTypesRequiredGroupSchemasCache: cache = {}
+  // docTypesNonRequiredGroupSchemasCache: cache = {}
 
   basicService = inject(BasicService);
   aggregateService = inject(AggregateService);
 
   documentCache: Ubl.Cache<Ubl.Document> = {}
+  documentSchemaCache = {}
 
   constructor() {
   }

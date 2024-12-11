@@ -20,8 +20,8 @@ describe('CacService', () => {
     expect(result).not.toBeNull();
   });
 
-  it("getNonRequiredAggregatesByRef -- #/definitions/Item", async () => {
-    let result = await service.getNonRequiredAggregatesByRef('#/definitions/Item');
+  it("getRequiredAggregatesByRef -- #/definitions/Item", async () => {
+    let result = await service.getRequiredAggregatesByRef('#/definitions/Item');
     expect(result).not.toBeNull();
   });
 
@@ -30,8 +30,14 @@ describe('CacService', () => {
     expect(result).not.toBeNull();
   });
 
+  it("getNonRequiredAggregatesByRef -- LegalMonetaryTotal", async () => {
+    let result = await service.getNonRequiredAggregatesByRef('LegalMonetaryTotal');
+    expect(result).not.toBeNull();
+  });
+
+
   it("getRequiredAggregatesByRef -- AccountingSupplierParty", async () => {
-    let result = await service.getRequiredAggregatesByRef("../common/UBL-CommonAggregateComponents-2.3.json#/definitions/AccountingSupplierParty");
+    let result = await service.getRequiredAggregatesByRef("../common/UBL-CommonAggregateComponents-2.3.json#/definitions/InvoiceLine");
     expect(result).not.toBeNull();
   });
 
@@ -41,39 +47,41 @@ describe('CacService', () => {
   });
 
 
+
+
   /* below maybe outdate */
-  it('getRequiredAggregateGroupSchemas get SalesItem', () => {
-    let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SalesItem');
-    expect(result).not.toBeNull();
-  });
-
-  it('getNonRequiredAggregateGroupSchemasByName get SalesItem', () => {
-    let result = service.getNonRequiredAggregateGroupSchemasByName('SalesItem');
-    expect(result).not.toBeNull();
-  });
-
-  it('getRequiredAggregateGroupSchemas get LotsGroup', () => {
-    let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/LotsGroup');
-    expect(result).not.toBeNull();
-  });
-
-  it('getRequiredAggregateGroupSchemas get sender party', () => {
-    let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SenderParty');
-    expect(result).not.toBeNull();
-  });
-
-  it('getNonRequiredAggregateGroupSchemas get sender party', () => {
-    let result = service.getNonRequiredAggregateGroupSchemasByName('SenderParty');
-    expect(result).not.toBeNull();
-  });
-
-  it('getNonRequiredAggregateGroupSchemas get PhysicalLocation', () => {
-    let result = service.getNonRequiredAggregateGroupSchemasByName('PhysicalLocation');
-    expect(result).not.toBeNull();
-  });
-
-  it('getNonRequiredAggregateGroupSchemas get Contact', () => {
-    let result = service.getNonRequiredAggregateGroupSchemasByName('Person');
-    expect(result).not.toBeNull();
-  });
+  // it('getRequiredAggregateGroupSchemas get SalesItem', () => {
+  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SalesItem');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getNonRequiredAggregateGroupSchemasByName get SalesItem', () => {
+  //   let result = service.getNonRequiredAggregateGroupSchemasByName('SalesItem');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getRequiredAggregateGroupSchemas get LotsGroup', () => {
+  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/LotsGroup');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getRequiredAggregateGroupSchemas get sender party', () => {
+  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SenderParty');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getNonRequiredAggregateGroupSchemas get sender party', () => {
+  //   let result = service.getNonRequiredAggregateGroupSchemasByName('SenderParty');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getNonRequiredAggregateGroupSchemas get PhysicalLocation', () => {
+  //   let result = service.getNonRequiredAggregateGroupSchemasByName('PhysicalLocation');
+  //   expect(result).not.toBeNull();
+  // });
+  //
+  // it('getNonRequiredAggregateGroupSchemas get Contact', () => {
+  //   let result = service.getNonRequiredAggregateGroupSchemasByName('Person');
+  //   expect(result).not.toBeNull();
+  // });
 });

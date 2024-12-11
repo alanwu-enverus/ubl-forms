@@ -8,7 +8,7 @@ import {Component, output} from '@angular/core';
     xmlns="http://www.w3.org/2000/svg"
     width="20"
     height="20"
-    fill="black"
+    fill="blue"
     class="bi bi-chevron-up"
     viewBox="0 0 20 20"
     (click)="onClick()">

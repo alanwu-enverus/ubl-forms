@@ -30,11 +30,7 @@ $gutter-vertical: 8rem;
 $gutter-vertical-small: 6rem;
 $gutter-horizontal: 6rem;
 
-@mixin set-divider($color) {
-  width: 1px;
-  background: $color;
-  margin-inline: 0.3rem;
-}
+
 
 *,
 *::before,
@@ -60,61 +56,71 @@ body {
   font-size: 1.2rem;
 }
 
-// basic container
-.basic-container {
-  display: grid;
-  grid-template-columns: max(1rem) 1fr;
-  padding: 0px 0.4rem;
-  margin-bottom: 0.2rem;
-
-  .top-item {
-    grid-column: span 2;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-
-    .title {
-      font-size: 1.4rem;
-      font-weight: 700;
-    }
-  }
-
-  .divider {
-    @include set-divider(#5643fa);
-  }
-
-  .items {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
+@mixin set-divider($color) {
+  width: 1px;
+  background: $color;
+  margin-inline: 0.3rem;
 }
+
+// basic container
+//.basic-container {
+//  display: grid;
+//  grid-template-columns: max(1rem) 1fr;
+//  padding: 0px 0.4rem;
+//  margin-bottom: 0.2rem;
+//
+//  .top-item {
+//    grid-column: span 2;
+//    display: flex;
+//    flex-direction: row;
+//    justify-content: space-between;
+//
+//    .title {
+//      font-size: 1.4rem;
+//      font-weight: 700;
+//    }
+//  }
+//
+//  .divider {
+//    @include set-divider(#5643fa);
+//  }
+//
+//  .items {
+//    display: flex;
+//    flex-direction: column;
+//    gap: 0.4rem;
+//  }
+//}
 
 // aggregate container
-.aggregate-container {
-  display: grid;
-  grid-template-columns: max(1rem) 1fr;
-  padding: 0px 0.4rem;
-  margin-bottom: 0.2rem;
-
-  .top-item {
-    grid-column: span 2;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-
-  }
-
-  .divider {
-    @include set-divider(#ffb900);
-  }
-
-  .items {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
+//.aggregate-container {
+//  display: grid;
+//  grid-template-columns: max(1rem) 1fr;
+//  padding: 0px 0.4rem;
+//  margin-bottom: 0.2rem;
+//
+//  .top-item {
+//    grid-column: span 2;
+//    display: flex;
+//    flex-direction: row;
+//    justify-content: space-between;
+//
+//    .title {
+//      font-size: 1.4rem;
+//      font-weight: 700;
+//    }
+//  }
+//
+//  .divider {
+//    @include set-divider(#ffb900);
+//  }
+//
+//  .items {
+//    display: flex;
+//    flex-direction: column;
+//    gap: 0.4rem;
+//  }
+//}
 
 //form input
 .form__input {
@@ -161,4 +167,5 @@ body {
   margin-bottom: 0px;
   display: block;
 }
+
 

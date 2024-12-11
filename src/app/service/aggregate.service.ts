@@ -1,7 +1,10 @@
 import {inject, Injectable} from '@angular/core';
-import {Aggregate, getRefName, levelString} from "./util";
+import {getRefName} from "./util";
 import {BasicService} from "./basic.service";
 import {cac, Ubl} from "../model/ubl.mdel";
+import Aggregate = Ubl.Aggregate;
+import NextRef = Ubl.NextRef;
+import Array = Ubl.Array;
 
 type Property = {
   title?: string;
@@ -35,6 +38,7 @@ export class AggregateService {
 
   aggregateCache: Map<string, Ubl.Aggregate> = new Map();
   basicCache: Map<string, Ubl.Basic | Ubl.Extension> = new Map();
+  definitionsCache: Map<string, any> = new Map();
 
   getRequiredAggregatesByRef(ref: string) {
     let cacName = getRefName(ref)
@@ -60,10 +64,14 @@ export class AggregateService {
   }
 
   getAggregatesFromSetting(title: string, description: string, properties: Property[], required?: string[], isRequiredOnly: boolean = true) {
-    let prods = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
-    let result: { [key: string]: Ubl.Basic | Ubl.Extension | Ubl.Aggregate | Ubl.Array | Ubl.NextRef } = {};
+    let propertyName = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
+    let props: { [key: string]: Ubl.Basic | Ubl.Extension | Ubl.Aggregate | Ubl.Array | Ubl.NextRef } = {};
+    let result = new Aggregate();
+    result.title = title;
+    result.description = description;
+    result.required = required ?? [];
 
-    prods.forEach((name) => {
+    propertyName.forEach((name) => {
       const type = properties[name].type;
       const ref = type === "array" ? properties[name].items.$ref : properties[name].$ref;
       const maxItems = properties[name].maxItems;
@@ -74,13 +82,13 @@ export class AggregateService {
             const basic = this.basicService.getBasicByRef(ref);
             this.basicCache.set(ref, basic);
           }
-          result[name] = this.basicCache.get(ref);
+          props[name] = this.basicCache.get(ref);
         } else if (this.isCacRef(ref)) {
           if (!this.aggregateCache.has(ref)) {
             const aggregate = this.getAggregatesFromInternalDef(ref, isRequiredOnly);
             this.aggregateCache.set(ref, aggregate);
           }
-          result[name] = this.aggregateCache.get(ref);
+          props[name] = this.aggregateCache.get(ref);
         }
       } else if (type === "array" || type === "object") {
         if (this.basicService.isBasicRef(ref)) {
@@ -88,40 +96,48 @@ export class AggregateService {
             const basic = this.basicService.getBasicByRef(ref);
             this.basicCache.set(ref, basic);
           }
-          result[name] = type === "array" ? {
-            title: properties[name].title,
-            description: properties[name].description,
-            items: this.basicCache.get(ref)
-          } as Ubl.Array : this.basicCache.get(ref);
+
+          if (type === "array") {
+            let array = new Ubl.Array();
+            array.title = properties[name].title;
+            array.description = properties[name].description;
+            array.items = this.basicCache.get(ref) as Ubl.Basic;
+            props[name] = array;
+          } else {
+            props[name] = this.basicCache.get(ref);
+          }
         } else if (this.isCacRef(ref)) {
           if (!this.aggregateCache.has(ref)) {
             const aggregate = this.getAggregatesFromInternalDef(ref, isRequiredOnly);
             this.aggregateCache.set(ref, aggregate);
           }
-          result[name] = type === "array" ? {
-            title: properties[name].title,
-            description: properties[name].description,
-            items: this.aggregateCache.get(ref)
-          } as Ubl.Array : this.aggregateCache.get(ref);
+          if (type === "array") {
+            let array = new Ubl.Array();
+            array.title = properties[name].title;
+            array.description = properties[name].description;
+            array.items = this.basicCache.get(ref) as Ubl.Basic;
+            props[name] = array;
+          } else {
+            props[name] = this.aggregateCache.get(ref);
+          }
         }
-      }
-      if (type === undefined && this.basicService.isBasicRef(ref)) {
+      } else if (type === undefined && this.basicService.isBasicRef(ref)) {
         if (!this.basicCache.has(ref)) {
           const basic = this.basicService.getBasicByRef(ref);
           this.basicCache.set(ref, basic);
         }
-        result[name] = this.basicCache.get(ref);
+        props[name] = this.basicCache.get(ref);
       } else {
-        result[name] = {$ref: ref} as Ubl.NextRef;
+        let nextRef = new NextRef();
+        nextRef.$ref = ref;
+        nextRef.title = properties[name].title;
+        nextRef.description = properties[name].description;
+        props[name] = nextRef;
       }
     });
 
-    return {
-      title: title,
-      description: description,
-      required: required ?? [],
-      properties: result
-    } as Ubl.Aggregate;
+    result.properties = props;
+    return result;
   }
 
   getAggregatesFromInternalDef(ref: string, isRequiredOnly: boolean = true) {
@@ -130,71 +146,6 @@ export class AggregateService {
     const required = def?.required || [];
 
     return this.getAggregatesFromSetting(def.title, def.description, def.properties, required, isRequiredOnly);
-  }
-
-
-  /*
-  * below can be deleted after refactored
-  * */
-  definitionsCache: Map<string, any> = new Map();
-  schemaCache: Map<string, any> = new Map();
-
-  circulars = new Map();
-  circularCount: Map<string, number> = new Map();
-
-  constructor() {
-    this.circulars.set('SubsidiaryLocation', '#/definitions/SubsidiaryLocation');
-    this.circulars.set('HeadOfficeParty', '#/definitions/HeadOfficeParty');
-    this.circulars.set('Party', '#/definitions/Party');
-    this.circulars.set('IssuerParty', '#/definitions/IssuerParty');
-    this.circulars.set('SignatoryParty', '#/definitions/SignatoryParty');
-    this.circulars.set('AgentParty', '#/definitions/AgentParty');
-    this.circulars.set('NotaryParty', '#/definitions/NotaryParty');
-    this.circulars.set('WitnessParty', '#/definitions/WitnessParty');
-    this.circulars.set('PreviousPriceList', '#/definitions/PreviousPriceList');
-  }
-
-
-  getRequiredAggregateGroupSchemas(ref: string) {
-    let cacName = getRefName(ref)
-    let def = this.getOrSetDefinition(cacName);
-    let required = def['required'];
-    let properties = def['properties'];
-    return this.getConfigFromJsonObjectProperty(properties, required, true);
-  }
-
-  getNonRequiredAggregateGroupSchemasByName(name: string) {
-    //assume that when call this method, just try to get  schemas for a non-required property of aggregate field
-    let def = this.getOrSetDefinition(name);
-    let required = def['required'];
-    let properties = def['properties'];
-    return this.getConfigFromJsonObjectProperty(properties, required, false);
-  }
-
-  private getConfigFromJsonObjectProperty(properties, required?: string[], isRequiredOnly: boolean = true): Aggregate[] {
-    let ownProds = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
-
-    return ownProds.flatMap((name) => {
-      let type = properties[name]['type'];
-      let ref = type === "array" ? properties[name]['items']['$ref'] : properties[name]['$ref'];
-      if (this.basicService.isBasicRef(ref)) {
-        if (this.schemaCache.has(ref)) {
-          return this.schemaCache.get(ref);
-        }
-        const schema = this.generateOutput(name, this.basicService.getBasicSchemaFromRef(ref), type, properties[name]['title'], properties[name]['description']);
-        this.schemaCache.set(ref, schema);
-        return schema;
-      } else if (ref.startsWith('#/definitions/')) {
-        if (this.schemaCache.has(ref)) {
-          return this.schemaCache.get(ref);
-        }
-        const schema = this.generateOutput(name, this.getConfigFromInternalDef(ref, isRequiredOnly), type, properties[name]['title'], properties[name]['description']);
-        this.schemaCache.set(ref, schema);
-        return this.schemaCache.get(ref);
-      } else {
-        throw new Error(`${ref} is not cbc or internal definition`);
-      }
-    }).filter((x) => x != null);
   }
 
   private getOrSetDefinition(cacName: string) {
@@ -223,38 +174,128 @@ export class AggregateService {
   }
 
 
-  // not sure if necessary to add name to map schemas? otherwise, return an array of schemas
-  // if basic schema do not need to name, can pass the name as null, then add condition to only return schemas
-  private generateOutput(name: string, val: any, type: string, title: string, description: string) {
-    return val ? {key: name, schemas: val, type: type, title: title, description: description} as Aggregate : null;
-  }
-
-  private getConfigFromInternalDef(ref: string, isRequiredOnly: boolean = true): any[] {
-    const refName = getRefName(ref);
-
-    if (this.circulars.has(refName)) {
-      this.addCircularCount(refName);
-      if (this.circularCount.get(refName) > 1) {
-        console.log(`${refName} has circular more than 1 times`);
-        return [];
-      }
-    }
-
-    const def = this.getOrSetDefinition(refName);
-    const required = def?.required || [];
-
-    if (def?.properties) {
-      return this.getConfigFromJsonObjectProperty(def.properties, required, isRequiredOnly);
-    } else {
-      console.log(`getConfigFromInternalDef ${def} cannot find properties`);
-      return [];
-    }
-  }
-
-  private addCircularCount(ref) {
-    const count = this.circularCount.get(ref) || 0;
-    this.circularCount.set(ref, count + 1);
-  }
+  /*
+  * below can be deleted after refactored
+  * */
+  // definitionsCache: Map<string, any> = new Map();
+  // schemaCache: Map<string, any> = new Map();
+  //
+  // circulars = new Map();
+  // circularCount: Map<string, number> = new Map();
+  //
+  // constructor() {
+  //   this.circulars.set('SubsidiaryLocation', '#/definitions/SubsidiaryLocation');
+  //   this.circulars.set('HeadOfficeParty', '#/definitions/HeadOfficeParty');
+  //   this.circulars.set('Party', '#/definitions/Party');
+  //   this.circulars.set('IssuerParty', '#/definitions/IssuerParty');
+  //   this.circulars.set('SignatoryParty', '#/definitions/SignatoryParty');
+  //   this.circulars.set('AgentParty', '#/definitions/AgentParty');
+  //   this.circulars.set('NotaryParty', '#/definitions/NotaryParty');
+  //   this.circulars.set('WitnessParty', '#/definitions/WitnessParty');
+  //   this.circulars.set('PreviousPriceList', '#/definitions/PreviousPriceList');
+  // }
+  //
+  //
+  // getRequiredAggregateGroupSchemas(ref: string) {
+  //   let cacName = getRefName(ref)
+  //   let def = this.getOrSetDefinition(cacName);
+  //   let required = def['required'];
+  //   let properties = def['properties'];
+  //   return this.getConfigFromJsonObjectProperty(properties, required, true);
+  // }
+  //
+  // getNonRequiredAggregateGroupSchemasByName(name: string) {
+  //   //assume that when call this method, just try to get  schemas for a non-required property of aggregate field
+  //   let def = this.getOrSetDefinition(name);
+  //   let required = def['required'];
+  //   let properties = def['properties'];
+  //   return this.getConfigFromJsonObjectProperty(properties, required, false);
+  // }
+  //
+  // private getConfigFromJsonObjectProperty(properties, required?: string[], isRequiredOnly: boolean = true): Aggregate[] {
+  //   let ownProds = isRequiredOnly ? required ?? [] : Object.getOwnPropertyNames(properties).filter((x) => !required?.includes(x));
+  //
+  //   return ownProds.flatMap((name) => {
+  //     let type = properties[name]['type'];
+  //     let ref = type === "array" ? properties[name]['items']['$ref'] : properties[name]['$ref'];
+  //     if (this.basicService.isBasicRef(ref)) {
+  //       if (this.schemaCache.has(ref)) {
+  //         return this.schemaCache.get(ref);
+  //       }
+  //       const schema = this.generateOutput(name, this.basicService.getBasicByRef(ref), type, properties[name]['title'], properties[name]['description']);
+  //       this.schemaCache.set(ref, schema);
+  //       return schema;
+  //     } else if (ref.startsWith('#/definitions/')) {
+  //       if (this.schemaCache.has(ref)) {
+  //         return this.schemaCache.get(ref);
+  //       }
+  //       const schema = this.generateOutput(name, this.getConfigFromInternalDef(ref, isRequiredOnly), type, properties[name]['title'], properties[name]['description']);
+  //       this.schemaCache.set(ref, schema);
+  //       return this.schemaCache.get(ref);
+  //     } else {
+  //       throw new Error(`${ref} is not cbc or internal definition`);
+  //     }
+  //   }).filter((x) => x != null);
+  // }
+  //
+  // private getOrSetDefinition(cacName: string) {
+  //   if (this.definitionsCache.has(cacName)) return this.definitionsCache.get(cacName);
+  //
+  //   let definition = this.getDefinitionByRefName(cacName);
+  //
+  //   this.definitionsCache.set(cacName, definition);
+  //
+  //   return this.definitionsCache.get(cacName);
+  // };
+  //
+  // private getDefinitionByRefName(refName: string) {
+  //   const definition = cac.definitions[refName];
+  //   if (definition?.type === 'object') {
+  //     return definition;
+  //   }
+  //
+  //   const ref = definition?.$ref;
+  //   if (ref?.startsWith('#/definitions/')) {
+  //     const cacName = ref.substring(ref.lastIndexOf('/') + 1);
+  //     return this.getDefinitionByRefName(cacName);
+  //   }
+  //
+  //   throw new Error(`getDefinitionByRefName ${refName} cannot find properties`);
+  // }
+  //
+  //
+  // // not sure if necessary to add name to map schemas? otherwise, return an array of schemas
+  // // if basic schema do not need to name, can pass the name as null, then add condition to only return schemas
+  // private generateOutput(name: string, val: any, type: string, title: string, description: string) {
+  //   return val ? {key: name, schemas: val, type: type, title: title, description: description} as Aggregate : null;
+  // }
+  //
+  // private getConfigFromInternalDef(ref: string, isRequiredOnly: boolean = true): any[] {
+  //   const refName = getRefName(ref);
+  //
+  //   if (this.circulars.has(refName)) {
+  //     this.addCircularCount(refName);
+  //     if (this.circularCount.get(refName) > 1) {
+  //       console.log(`${refName} has circular more than 1 times`);
+  //       return [];
+  //     }
+  //   }
+  //
+  //   const def = this.getOrSetDefinition(refName);
+  //   const required = def?.required || [];
+  //
+  //   if (def?.properties) {
+  //     return this.getConfigFromJsonObjectProperty(def.properties, required, isRequiredOnly);
+  //   } else {
+  //     console.log(`getConfigFromInternalDef ${def} cannot find properties`);
+  //     return [];
+  //   }
+  // }
+  //
+  // private addCircularCount(ref) {
+  //   const count = this.circularCount.get(ref) || 0;
+  //   this.circularCount.set(ref, count + 1);
+  // }
 
 }
 

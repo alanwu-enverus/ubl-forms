@@ -7,22 +7,28 @@ import {JsonPipe} from "@angular/common";
 // import {DocComponent} from "./test/doc.component";
 import {DocumentComponent} from "./form/ubl/document.component";
 import {BasicComponent} from "./form/ubl/basic.component";
+import {AggregateComponent} from "./form/ubl/aggregate.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InputComponent, ReactiveFormsModule, JsonPipe, DocumentComponent, BasicComponent],
+  imports: [RouterOutlet, InputComponent, ReactiveFormsModule, JsonPipe, DocumentComponent, BasicComponent, AggregateComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
+  // data: any;
   ngOnInit(): void {
+    // this.data= { ID: {_: "q"}};
   }
 
   title = 'dynaform';
+  ublType = 'Invoice';
+  data= { "ID": { "_": "q", "schemeName": "aa", "schemeAgencyID": "as" }, "IssueDate": { "_": "2024-11-12" } };
+
   // docService = inject(DocumentService);
 
-  errorMessages = { required: 'The name field is required' };
+  // errorMessages = { required: 'The name field is required' };
   // testControl = new FormControl('MyDefaultValue', Validators.required);
 
    // formGroup = new FormGroup({

@@ -15,7 +15,7 @@ export {qdt};
 export {cec};
 
 export namespace Ubl {
-  export type Basic = {
+  export class Basic  {
     "title": string;
     "description": string;
     "required": string[];
@@ -24,60 +24,72 @@ export namespace Ubl {
         "type": string,
         "format"?: string,
       };
-    },
+    }
   }
-  export type Aggregate = {
+  export class Aggregate  {
     "title": string;
     "description": string;
     "required": string[];
     "properties": {
-      [key: string]: Basic | Aggregate | Array | NextRef;
-    },
+      [key: string]: Basic | Aggregate | Array | Extension | NextRef;
+    };
     "additionalProperties"?: boolean;
   }
 
-  export type Array = {
+  export class Array  {
     "title": string;
     "description": string;
     items: Basic | Aggregate | NextRef;
   }
 
-  export type ExtensionContent = {
+  export class ExtensionContent  {
     "description": string;
     "type": object;
   }
 
-  export type Extension = {
+  export class Extension  {
     "title": string;
     "description": string;
     "required": string[];
     "properties": {
       [key: string]: Basic | ExtensionContent;
-    },
+    }
   }
 
   // this is for the next level of the aggregate
-  export type NextRef = {
+  export class NextRef  {
+    "title": string;
+    "description": string;
     $ref: string;
   }
 
 
-  export type Document = {
+  export class Document  {
     title: string;
     description: string;
     required: string[];
     properties: {
       [key: string]: Basic | Aggregate | Array | Extension;
-    },
+    }
   }
 
   export interface Cache<T>  {
     [key: string]: T;
   }
+}
 
-  export function isBasic(obj: any): obj is Basic {
-    return obj.properties !== undefined;
-  }
+// this type just host the json schema
+export type Schema = {
+  title: string;
+  description: string;
+  required: string[];
+  properties: {
+    [key: string]: {
+      type: string,
+      format?: string,
+    };
+  },
+  additionalProperties?: boolean;
 }
 
 

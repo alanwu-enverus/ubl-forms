@@ -26,60 +26,123 @@ export function removeNulls(obj: any) {
   return obj;
 }
 
-export type cache = {
-  [key: string]: any;
+export function removeEmpty(object: any) {
+  Object
+    .entries(object)
+    .forEach(([k, v]) => {
+      if (v && typeof v === 'object') {
+        removeEmpty(v);
+      }
+      if (v && typeof v === 'object' && !Object.keys(v).length || v === null || v === undefined) {
+        if (Array.isArray(object) && typeof k === 'number') {
+          object.splice(k, 1);
+        } else {
+          delete object[k];
+        }
+      }
+    });
+  return object;
 }
 
-export function levelString(data: string, count: number, indent = ' ') {
-  indent = indent.repeat(count * 2);
-  return `${indent} ${count} : ${data}`;
-};
+export function isEmpty(obj: any) {
+  if (obj === null || obj === undefined) {
+    return true;
+  }
 
-//host basic schema
-export type Schema = {
-  title: string;
-  description: string;
-  required: string[];
-  properties: {
-    [key: string]: {
-      type: string,
-      format?: string,
-    };
-  },
-  additionalProperties?: boolean;
+  // Check if obj is an object (not an array)
+  if (typeof obj === "object" && !Array.isArray(obj)) {
+    // Check if the object has no own properties
+    if (Object.keys(obj).length === 0) {
+      return true;
+    }
+
+    // Recursively check each property of the object
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key) && !isEmpty(obj[key])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Check if obj is an array
+  if (Array.isArray(obj)) {
+    // Check if the array is empty or all its elements are empty
+    return obj.length === 0 || obj.every((item) => isEmpty(item));
+  }
+
+  // For primitive types (number, string, boolean), it's not empty
+  return false;
 }
 
-//host properties key->schema ?? seems this is only for UblExtension type ??
-export type Properties = {
-  [key: string]: Schema
-}
 
-//aggregate type
-export type Aggregate = {
-  key: string;
-  schemas: Schema | Schema[] | Aggregate | Aggregate[]; // can be renamed to properties
-  type: string;
-  title: string;
-  description: string;
-}
+// export function isEmpty(myObject) {
+//   if(Object.keys(myObject).length === 0) return true;
+//   let result = false;
+//   for(var key in myObject) {
+//     if(myObject[key] == null || myObject[key] == undefined) return true;
+//     if((typeof myObject[key] === 'object' && Object.keys(myObject[key]).length === 0)) return true;
+//     if((typeof myObject[key] === 'string' && myObject[key].trim().length === 0)) return true;
+//     if(myObject[key] instanceof Object) return isEmpty(myObject[key]);
+//   }
+//   return false;
+// }
 
-//host document type
-export type UblDocument = {
-  title: string;
-  description: string;
-  required: string[];
-  properties: {
-    [key: string]: Schema | Properties | Aggregate | Aggregate[];
-  },
-}
+// export type cache = {
+//   [key: string]: any;
+// }
+//
+// export function levelString(data: string, count: number, indent = ' ') {
+//   indent = indent.repeat(count * 2);
+//   return `${indent} ${count} : ${data}`;
+// };
+//
+// //host basic schema
+// export type Schema = {
+//   title: string;
+//   description: string;
+//   required: string[];
+//   properties: {
+//     [key: string]: {
+//       type: string,
+//       format?: string,
+//     };
+//   },
+//   additionalProperties?: boolean;
+// }
+//
+// //host properties key->schema ?? seems this is only for UblExtension type ??
+// export type Properties = {
+//   [key: string]: Schema
+// }
+//
+// //aggregate type
+// export type Aggregate = {
+//   key: string;
+//   schemas: Schema | Schema[] | Aggregate | Aggregate[]; // can be renamed to properties
+//   type: string;
+//   title: string;
+//   description: string;
+// }
+//
+// //host document type
+// export type UblDocument = {
+//   title: string;
+//   description: string;
+//   required: string[];
+//   properties: {
+//     [key: string]: Schema | Properties | Aggregate | Aggregate[];
+//   },
+// }
 
 // pass it to ui aggregate component to determine how to render
-export enum UblElementType  {
-  BasicAggregate = 0,
-  RequiredAggregate = 1,
-  NonRequiredAggregate = 2,
-  ArrayAggregate = 3,
-}
+// export enum UblElementType  {
+//   BasicAggregate = 0,
+//   RequiredAggregate = 1,
+//   NonRequiredAggregate = 2,
+//   ArrayAggregate = 3,
+// }
 
 
 
