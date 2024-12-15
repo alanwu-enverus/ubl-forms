@@ -1,6 +1,13 @@
-
 export function getRefName(ref: string) {
-  return ref.substring(ref.lastIndexOf('/') + 1);
+  let result = ref;
+
+  try {
+    result = ref?.includes("/") ? ref.substring(ref.lastIndexOf('/') + 1) : ref;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return result;
 }
 
 export function removeNulls(obj: any) {
@@ -76,6 +83,38 @@ export function isEmpty(obj: any) {
   return false;
 }
 
+export function camelCaseToTitle(text: string) {
+  return text.split(/([A-Z]|\d)/).map((v, i, arr) => {
+    // If first block then capitalise 1st letter regardless
+    if (!i) return v.charAt(0).toUpperCase() + v.slice(1);
+    // Skip empty blocks
+    if (!v) return v;
+    // Underscore substitution
+    if (v === '_') return " ";
+    // We have a capital or number
+    if (v.length === 1 && v === v.toUpperCase()) {
+      const previousCapital = !arr[i - 1] || arr[i - 1] === '_';
+      const nextWord = i + 1 < arr.length && arr[i + 1] && arr[i + 1] !== '_';
+      const nextTwoCapitalsOrEndOfString = i + 3 > arr.length || !arr[i + 1] && !arr[i + 3];
+      // Insert space
+      if (!previousCapital || nextWord) v = " " + v;
+      // Start of word or single letter word
+      if (nextWord || (!previousCapital && !nextTwoCapitalsOrEndOfString)) v = v;
+    }
+    return v;
+  }).join("");
+}
+
+export async function getSampleDocument(name: string): Promise<any> {
+  const fileName = `UBL-${name}-Example.json`;
+  let data = await import(`../../../public/ubl-sample/${fileName}`)
+  return data[name];
+}
+
+// export function camelCaseToTitle(text: string) {
+//   return text.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1")
+// }
+
 
 // export function isEmpty(myObject) {
 //   if(Object.keys(myObject).length === 0) return true;
@@ -143,7 +182,6 @@ export function isEmpty(obj: any) {
 //   NonRequiredAggregate = 2,
 //   ArrayAggregate = 3,
 // }
-
 
 
 // // todo: should not needed to pass parent formGroup and return new formControl like as real function? is it better

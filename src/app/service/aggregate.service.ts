@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {getRefName} from "./util";
 import {BasicService} from "./basic.service";
-import {cac, Ubl} from "../model/ubl.mdel";
+import {cac, Ubl} from "../model/ubl.model";
 import Aggregate = Ubl.Aggregate;
 import NextRef = Ubl.NextRef;
 import Array = Ubl.Array;
@@ -115,7 +115,7 @@ export class AggregateService {
             let array = new Ubl.Array();
             array.title = properties[name].title;
             array.description = properties[name].description;
-            array.items = this.basicCache.get(ref) as Ubl.Basic;
+            array.items = this.aggregateCache.get(ref) as Ubl.Aggregate;
             props[name] = array;
           } else {
             props[name] = this.aggregateCache.get(ref);

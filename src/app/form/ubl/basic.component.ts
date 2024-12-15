@@ -1,12 +1,14 @@
 import {Component, inject, input, Input, OnInit, signal} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {Ubl} from "../../model/ubl.mdel";
+import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
+import {Ubl} from "../../model/ubl.model";
 import Basic = Ubl.Basic;
 import {BasicService} from "../../service/basic.service";
 import {UpComponent} from "../helper/up.component";
 import {DownComponent} from "../helper/down.component";
 import {InputComponent} from "../helper/input.component";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
+import {NgClass} from "@angular/common";
+import {camelCaseToTitle} from "../../service/util";
 
 @Component({
   selector: 'ubl-basic',
@@ -16,12 +18,13 @@ import {ThreeDotsComponent} from "../helper/three.dots.component";
     UpComponent,
     DownComponent,
     InputComponent,
-    ThreeDotsComponent
+    ThreeDotsComponent,
+    NgClass
   ],
   template: `
     <ng-container [formGroup]="formGroup">
       <div class="basic-container">
-        <div class="top-item">
+        <div [ngClass]="documentLevel ? 'doc-level-top-item': 'top-item'">
           <div class="title"> {{ title() }}</div>
           @if (isExpanded()) {
             <ubl-up (closeRequest)="onClose()"></ubl-up>
@@ -56,13 +59,12 @@ import {ThreeDotsComponent} from "../helper/three.dots.component";
   `,
   styles: `
     .basic-container {
-      display: grid;
-      grid-template-columns: max(1rem) 1fr;
-      padding: 0px 0.4rem;
+      position: relative;
+      display: block;
+
       margin-bottom: 0.2rem;
 
       .top-item {
-        grid-column: span 2;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -85,15 +87,33 @@ import {ThreeDotsComponent} from "../helper/three.dots.component";
         gap: 0.4rem;
       }
     }
+
+    .doc-level-top-item {
+      grid-column: span 2;
+      display: flex;
+      flex-direction: row;
+      justify-content: start;
+      align-items: center;
+      gap: 0.5rem;
+      background: gainsboro;
+      padding: 0.1rem 0.5rem;
+
+      .title {
+        font-size: 1.5rem;
+        order: 1;
+      }
+    }
+
   `
 })
 export class BasicComponent implements OnInit {
   @Input() model: any;
   @Input() schema: Basic;
   @Input({required: true}) formGroupKey = '';
-  @Input({required: true}) parentFormGroup: FormGroup;
+  @Input({required: true}) parentFormGroup: FormGroup | FormArray;
+  @Input() documentLevel = false;
   title = input('title', {
-    transform: (value: string) => value?.replace('. Type', '').replace('. Details', '')
+    transform: (value: string) => camelCaseToTitle(value?.replace('. Type', '').replace('. Details', ''))
   });
 
   service = inject(BasicService);
@@ -138,8 +158,17 @@ export class BasicComponent implements OnInit {
       this.checkValue.call(this);
     })
 
-    this.parentFormGroup.addControl(this.formGroupKey, this.formGroup);
+    this.addToParentControl();
+
     this.checkValue.call(this);
+  }
+
+  private addToParentControl() {
+    if (this.parentFormGroup instanceof FormGroup) {
+      this.parentFormGroup.addControl(this.formGroupKey, this.formGroup);
+    } else {
+      this.parentFormGroup.push(this.formGroup);
+    }
   }
 
   private getRequiredControls() {
@@ -180,7 +209,8 @@ export class BasicComponent implements OnInit {
   }
 
   private convertDefaultName(name: string) {
-    return name === '_' ? this.schema.title.replace('. Type', '') : name
+    let defaultName =  name === '_' ? this.schema.title.replace('. Type', '') : name
+    return camelCaseToTitle(defaultName)
   }
 
   private checkValue() {

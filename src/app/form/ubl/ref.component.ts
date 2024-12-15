@@ -1,7 +1,7 @@
 import {Component, ComponentRef, inject, Input, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
 import {ExpandComponent} from "../helper/expand.component";
 import {FormGroup, ReactiveFormsModule} from "@angular/forms";
-import {Ubl} from "../../model/ubl.mdel";
+import {Ubl} from "../../model/ubl.model";
 import Aggregate = Ubl.Aggregate;
 import {AggregateService} from "../../service/aggregate.service";
 import {AggregateComponent} from "./aggregate.component";
@@ -50,27 +50,6 @@ import {isEmpty} from "../../service/util";
         font-size: 1.5rem;
       }
     }
-    //display: flex;
-    //flex-direction: column;
-    //background: gainsboro;
-    //
-    //.top-item {
-    //  display: flex;
-    //  justify-content: space-evenly;
-    //  align-items: center;
-    //
-    //  gap: 0.5rem;
-    //
-    //  padding: 0.1rem 0.5rem;
-    //
-    //  .title {
-    //    font-size: 1.5rem;
-    //  }
-    //}
-    //
-    //.description {
-    //  text-align: center;
-    //}
   }
   .pt-1 {
     padding-top: 0.5rem;
@@ -90,6 +69,7 @@ export class RefComponent implements OnInit {
   @Input({required: true}) description = '';
   @Input({required: true}) ref: string;
   @Input({required: true}) loadRef: boolean = false;
+  @Input() refName: string = '';
 
   isExpanded = signal(false);
   isLoading = signal(false);
@@ -98,9 +78,8 @@ export class RefComponent implements OnInit {
   schema: Aggregate;
   service = inject(AggregateService);
   aggregateComponentRef?: ComponentRef<AggregateComponent>;
-  public get formGroup(): FormGroup {
-    return this.parentFormGroup.get(this.formGroupKey) as FormGroup || new FormGroup({});
-  }
+
+
 
 
   /* *** make sure ***
@@ -135,9 +114,12 @@ export class RefComponent implements OnInit {
     this.isExpanded.set(true)
   }
 
+  public get formGroup(): FormGroup {
+    return this.parentFormGroup.get(this.formGroupKey) as FormGroup || new FormGroup({});
+  }
   public onClose() {
-    // if (isEmpty(this.aggregateComponentRef.instance.formGroup.value)) {
-      this.aggregateComponentRef.instance?.onClose();
+    // if (isEmpty(this.aggregateComponentRef?.instance.formGroup.value)) {
+      this.aggregateComponentRef?.instance?.onClose();
     // }
   }
 }

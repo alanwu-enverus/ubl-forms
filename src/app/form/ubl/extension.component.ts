@@ -11,6 +11,7 @@ import { Component } from '@angular/core';
   `,
   styles: ``
 })
+// todo: implement extension component
 export class ExtensionComponent {
 
 }

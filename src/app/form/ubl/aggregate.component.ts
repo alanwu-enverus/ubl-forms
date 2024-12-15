@@ -7,30 +7,21 @@ import {
   signal,
   viewChild,
   ViewContainerRef,
-  ViewRef
 } from '@angular/core';
-import {FormGroup, ReactiveFormsModule} from "@angular/forms";
-import {Ubl} from "../../model/ubl.mdel";
+import {FormArray, FormGroup, ReactiveFormsModule} from "@angular/forms";
+import {LoadedComponent, Ubl} from "../../model/ubl.model";
 import Aggregate = Ubl.Aggregate;
 import {BasicComponent} from "./basic.component";
-// import {DownComponent} from "../helper/down.component";
 import {UpComponent} from "../helper/up.component";
 import Basic = Ubl.Basic;
 import Extension = Ubl.Extension;
 import NextRef = Ubl.NextRef;
+import Array = Ubl.Array;
 import {AggregateService} from "../../service/aggregate.service";
 import {RefComponent} from "./ref.component";
 import {isEmpty} from "../../service/util";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
-
-type UblElementType = Basic | Aggregate | Extension | NextRef;
-
-interface LoadedComponent {
-  component: BasicComponent | AggregateComponent | RefComponent;
-  viewRef: ViewRef;
-  isRequired: boolean;
-  position: number;
-}
+import {ArrayComponent} from "./array.component";
 
 @Component({
   selector: 'ubl-aggregate',
@@ -47,7 +38,7 @@ interface LoadedComponent {
           @if (isExpanded()) {
             <ubl-up (closeRequest)="onClose()"></ubl-up>
           } @else {
-            <ubl-three-dots (openRequest) ="onOpen()"  ></ubl-three-dots>
+            <ubl-three-dots (openRequest)="onOpen()"></ubl-three-dots>
           }
           <div class="title"> {{ title }}</div>
           @if (isLoading()) {
@@ -116,7 +107,7 @@ export class AggregateComponent implements OnInit {
   @Input() model: any;
   @Input() schema: Aggregate;
   @Input({required: true}) formGroupKey = '';
-  @Input({required: true}) parentFormGroup: FormGroup;
+  @Input({required: true}) parentFormGroup: FormGroup | FormArray;
   @Input({required: true}) title = '';
   @Input({required: true}) description = '';
   @Input({required: true}) loadNonRequiredIfRequiredIsEmpty: boolean = false;
@@ -127,6 +118,7 @@ export class AggregateComponent implements OnInit {
   basicComponentRef?: ComponentRef<BasicComponent>;
   aggregateComponentRef?: ComponentRef<AggregateComponent>;
   refComponentRef?: ComponentRef<RefComponent>;
+  arrayComponentRef?: ComponentRef<ArrayComponent>;
 
   service = inject(AggregateService);
 
@@ -148,62 +140,43 @@ export class AggregateComponent implements OnInit {
   private loadedComponents: LoadedComponent[] = [];
 
   ngOnInit(): void {
-    console.log('AggregateComponent', this.schema);
     this.required = this.schema.required;
-    if (this.required?.length > 0) {
-      this.initRequired();
-    } else if (this.loadNonRequiredIfRequiredIsEmpty) {
-      this.initNonRequired();
+    this.nonRequired = Object.keys(this.schema.properties).filter(name => !this.schema.required.includes(name));
+
+    if(this.isModelEmpty(this.model)) {
+      if (this.required?.length > 0) {
+        this.initRequired();
+      } else if (this.loadNonRequiredIfRequiredIsEmpty) {
+        this.initNonRequired();
+      }
+    } else {
+      if (this.required?.length > 0) {
+        this.initRequired();
+      }
+      if(!this.isModelNotRequiredEmpty(this.model) || this.loadNonRequiredIfRequiredIsEmpty) {
+        this.initNonRequired();
+      }
+      /*
+        for some reason, closing components here does not work
+       */
+      // this.closeComponent();
     }
 
     this.loadNonRequiredIfRequiredIsEmpty = false; // try to load non-required only once
-    this.parentFormGroup.addControl(this.formGroupKey, this.formGroup);
+    this.addToParentControl();
+  }
+
+  private addToParentControl() {
+    if (this.parentFormGroup instanceof FormGroup) {
+      this.parentFormGroup.addControl(this.formGroupKey, this.formGroup);
+    } else {
+      this.parentFormGroup.push(this.formGroup);
+    }
   }
 
   onClose() {
     this.isExpanded.set(false);
-    if (this.vcr()?.length > 0) {
-      if (this.required.length === 0) {
-        this.allNonRequiredIsEmptyAndHaveNotReqiured = this.loadedComponents.filter((component) => !component.isRequired).every((component) => isEmpty(component.component.formGroup?.value));
-        if(this.allNonRequiredIsEmptyAndHaveNotReqiured) {
-          this.vcr().clear();
-        } else {
-          this.loadedComponents.filter((component) => !component.isRequired).forEach((component) => {
-            if (isEmpty(component.component.formGroup.value)) {
-              try {
-                let index = this.vcr().indexOf(component.viewRef);
-                if(index >=0){
-                  this.vcr().detach(index);
-                }
-                // this.vcr().detach(this.vcr().indexOf(component.viewRef));
-              } catch (e) {
-                console.error(e);
-              }
-
-              // this.vcr().detach(component.position);
-            } else {
-              component.component.onClose();
-            }
-          })
-        }
-      } else {
-        this.loadedComponents.filter((component) => !component.isRequired).forEach((component) => {
-          if (isEmpty(component.component.formGroup.value)) {
-            let index = this.vcr().indexOf(component.viewRef);
-            if(index >=0){
-              this.vcr().detach(index);
-            }
-            // this.vcr().detach(this.vcr().indexOf(component.viewRef));
-          } else {
-            component.component.onClose();
-          }
-        })
-      }
-
-      this.loadedComponents.filter((component) => component.isRequired).forEach((component) => {
-        component.component.onClose();
-      })
-    }
+    this.closeComponent();
   }
 
   onOpen() {
@@ -231,59 +204,124 @@ export class AggregateComponent implements OnInit {
   private initRequired() {
     this.required.forEach((name) => {
       const field = this.schema.properties[name];
-      const model = this.model ? this.model[name] : {};
-      this.setupComponent(field, model, name);
+      const data = this.model ? this.model[name] : {};
+      this.setupComponent(field, data, name);
     })
   }
 
   private getNonRequired() {
-    this.schema = this.service.getNonRequiredAggregatesByRef(this.formGroupKey);
-    this.nonRequired = Object.keys(this.schema.properties).filter(name => !this.schema.required.includes(name));
-    this.nonRequired.forEach((name) => {
-      const field = this.schema.properties[name];
-      const model = this.model ? this.model[name] : {};
-      this.setupComponent(field, model, name, false);
-    })
+      if(this.formGroupKey === '0'){
+        console.log('here')
+      }
+      this.schema = this.service.getNonRequiredAggregatesByRef(this.formGroupKey);
+      this.nonRequired = Object.keys(this.schema.properties).filter(name => !this.schema.required.includes(name));
+      this.nonRequired.forEach((name) => {
+        const field = this.schema.properties[name];
+        const data = this.model ? this.model[name] : {};
+        this.setupComponent(field, data, name, false);
+      })
   }
 
-  private setupComponent(field: any, model, name, isRequired = true) {
+  private setupComponent(field: any, data, name, isRequired = true) {
     if (field instanceof Basic) {
       this.basicComponentRef = this.vcr()?.createComponent(BasicComponent);
-      this.basicComponentRef?.setInput('model', model);
+      this.basicComponentRef?.setInput('model', data);
       this.basicComponentRef?.setInput('schema', field);
-      // this.basicComponentRef?.setInput('title', field['title']);  // this seems not working
       this.basicComponentRef?.setInput('title', name);
       this.basicComponentRef?.setInput('formGroupKey', name);
       this.basicComponentRef?.setInput('parentFormGroup', this.formGroup);
 
-      this.loadedComponents.push({component: this.basicComponentRef.instance, viewRef: this.vcr().get(this.vcr().length - 1), isRequired: isRequired, position: this.vcr().length - 1});
+      this.loadedComponents.push({
+        component: this.basicComponentRef.instance,
+        viewRef: this.vcr().get(this.vcr().length - 1),
+        isRequired: isRequired,
+        position: this.vcr().length - 1
+      });
     } else if (field instanceof Aggregate) {
       this.aggregateComponentRef = this.vcr()?.createComponent(AggregateComponent);
-      this.aggregateComponentRef?.setInput('model', model);
+      this.aggregateComponentRef?.setInput('model', data);
       this.aggregateComponentRef?.setInput('schema', field);
       this.aggregateComponentRef?.setInput('title', field['title']);
       this.aggregateComponentRef?.setInput('description', field['description']);
       this.aggregateComponentRef?.setInput('formGroupKey', name);
       this.aggregateComponentRef?.setInput('parentFormGroup', this.formGroup);
 
-      this.loadedComponents.push({component: this.aggregateComponentRef.instance, viewRef: this.vcr().get(this.vcr().length - 1), isRequired: isRequired, position: this.vcr().length - 1});
+      this.loadedComponents.push({
+        component: this.aggregateComponentRef.instance,
+        viewRef: this.vcr().get(this.vcr().length - 1),
+        isRequired: isRequired,
+        position: this.vcr().length - 1
+      });
     } else if (field instanceof Array) {
-      console.log(`Array: ${field}`);
+      this.arrayComponentRef = this.vcr()?.createComponent(ArrayComponent);
+      this.arrayComponentRef?.setInput('model', data);
+      this.arrayComponentRef?.setInput('schema', field.items);
+      this.arrayComponentRef?.setInput('title', field.title);
+      this.arrayComponentRef?.setInput('formGroupKey', name);
+      this.arrayComponentRef?.setInput('parentFormGroup', this.formGroup);
     } else if (field instanceof Extension) {
-      console.log(`Extension: ${field}`);
+      // todo: handle extension
     } else if (field instanceof NextRef) {
-      console.log(`NextRef: ${field}`);
       this.refComponentRef = this.vcr()?.createComponent(RefComponent);
-      this.refComponentRef?.setInput('model', model);
+      this.refComponentRef?.setInput('model', data);
       this.refComponentRef?.setInput('title', field['title']);
       this.refComponentRef?.setInput('description', field['description']);
       this.refComponentRef?.setInput('parentFormGroup', this.formGroup);
       this.refComponentRef?.setInput('formGroupKey', name);
       this.refComponentRef?.setInput('ref', field['$ref']);
-      // this.refComponentRef?.setInput('loadRef', this.loadNonRequiredIfRequiredIsEmpty);
-      this.refComponentRef?.setInput('loadRef', false); // temp testing
+      this.refComponentRef?.setInput('loadRef', !isEmpty(data));
+      this.refComponentRef?.setInput('refName', name)
 
-      this.loadedComponents.push({component: this.refComponentRef.instance, viewRef: this.vcr().get(this.vcr().length - 1), isRequired: isRequired, position: this.vcr().length - 1});
+      this.loadedComponents.push({
+        component: this.refComponentRef.instance,
+        viewRef: this.vcr().get(this.vcr().length - 1),
+        isRequired: isRequired,
+        position: this.vcr().length - 1
+      });
     }
   }
+
+  private closeComponent() {
+    if (this.vcr()?.length > 0) {
+      const nonRequiredComponents = this.loadedComponents.filter((component) => !component.isRequired);
+      const requiredComponents = this.loadedComponents.filter((component) => component.isRequired);
+
+      if (this.required.length === 0) {
+        this.allNonRequiredIsEmptyAndHaveNotReqiured = nonRequiredComponents.every((component) => isEmpty(component.component.formGroup?.value));
+        if (this.allNonRequiredIsEmptyAndHaveNotReqiured) {
+          this.vcr().clear();
+        } else {
+          nonRequiredComponents.forEach((component) => {
+            if (isEmpty(component.component.formGroup.value)) {
+              const index = this.vcr().indexOf(component.viewRef);
+              if (index >= 0) {
+                this.vcr().detach(index);
+              }
+            } else {
+              component.component.onClose();
+            }
+          });
+        }
+      } else {
+        nonRequiredComponents.forEach((component) => {
+          if (isEmpty(component.component.formGroup.value)) {
+            const index = this.vcr().indexOf(component.viewRef);
+            if (index >= 0) {
+              this.vcr().detach(index);
+            }
+          } else {
+            component.component.onClose();
+          }
+        });
+      }
+
+      requiredComponents.forEach((component) => {
+        component.component.onClose();
+      });
+    }
+  }
+
+  private isModelEmpty = (model: any) => isEmpty(model);
+
+  private isModelNotRequiredEmpty = (model: any) => this.nonRequired.every((name) => isEmpty(model[name]));
 }

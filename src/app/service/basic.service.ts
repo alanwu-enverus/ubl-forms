@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {getRefName} from "./util";
-import {cbc, cct, cec, qdt, Schema, Ubl, udt} from "../model/ubl.mdel";
+import {cbc, cct, cec, qdt, Schema, Ubl, udt} from "../model/ubl.model";
 import Extension = Ubl.Extension;
 import Basic = Ubl.Basic;
 

@@ -6,6 +6,10 @@ import * as cac from '../../../public/ubl/common/UBL-CommonAggregateComponents-2
 import * as udt from '../../../public/ubl/common/BDNDR-UnqualifiedDataTypes-1.1.json';
 import * as qdt from '../../../public/ubl/common/UBL-QualifiedDataTypes-2.3.json';
 import * as cec from '../../../public/ubl/common/UBL-CommonExtensionComponents-2.3.json';
+import {BasicComponent} from "../form/ubl/basic.component";
+import {RefComponent} from "../form/ubl/ref.component";
+import {ViewRef} from "@angular/core";
+import {AggregateComponent} from "../form/ubl/aggregate.component";
 
 export {udt};
 export {cct};
@@ -90,6 +94,13 @@ export type Schema = {
     };
   },
   additionalProperties?: boolean;
+}
+
+export interface LoadedComponent {
+  component: BasicComponent | AggregateComponent | RefComponent;
+  viewRef: ViewRef;
+  isRequired: boolean;
+  position: number;
 }
 
 

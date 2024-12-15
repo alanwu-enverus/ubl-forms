@@ -8,6 +8,7 @@ import {JsonPipe} from "@angular/common";
 import {DocumentComponent} from "./form/ubl/document.component";
 import {BasicComponent} from "./form/ubl/basic.component";
 import {AggregateComponent} from "./form/ubl/aggregate.component";
+import {getSampleDocument} from "./service/util";
 
 @Component({
   selector: 'app-root',
@@ -17,14 +18,15 @@ import {AggregateComponent} from "./form/ubl/aggregate.component";
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  // data: any;
-  ngOnInit(): void {
-    // this.data= { ID: {_: "q"}};
-  }
-
   title = 'dynaform';
   ublType = 'Invoice';
-  data= { "ID": { "_": "q", "schemeName": "aa", "schemeAgencyID": "as" }, "IssueDate": { "_": "2024-11-12" } };
+  data: any;
+  async ngOnInit(): Promise<void> {
+    this.data = await getSampleDocument("Invoice");
+    console.log(this.data);
+  }
+
+
 
   // docService = inject(DocumentService);
 

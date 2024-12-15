@@ -24,6 +24,11 @@ describe('DocumentService', () => {
     expect(result).not.toBeNull();
   });
 
+  it('getDocumentNonRequiredSchema -- Invoice', async () => {
+    let result = await service.getDocumentNonRequiredSchema('Invoice');
+    expect(result).not.toBeNull();
+  });
+
   // it('getRequiredSchemas -- ApplicationResponse', async () => {
   //   let result = await service.getDocTypeRequiredSchemas('ApplicationResponse');
   //   expect(result).not.toBeNull();
