@@ -105,7 +105,7 @@ export class RefComponent implements OnInit {
     this.aggregateComponentRef?.setInput('schema', this.schema);
     this.aggregateComponentRef?.setInput('title', this.schema['title']);
     this.aggregateComponentRef?.setInput('description', this.schema['description']);
-    this.aggregateComponentRef?.setInput('formGroupKey', this.formGroupKey);
+    this.aggregateComponentRef?.setInput('formGroupKey', this.refName);
     this.aggregateComponentRef?.setInput('parentFormGroup', this.parentFormGroup);
     this.aggregateComponentRef?.setInput('loadNonRequiredIfRequiredIsEmpty', true);
     // skip refName, so aggregate component will not load non-required

@@ -10,6 +10,10 @@ import {BasicComponent} from "../form/ubl/basic.component";
 import {RefComponent} from "../form/ubl/ref.component";
 import {ViewRef} from "@angular/core";
 import {AggregateComponent} from "../form/ubl/aggregate.component";
+import {ArrayComponent} from "../form/ubl/array.component";
+import Basic = Ubl.Basic;
+import Aggregate = Ubl.Aggregate;
+import NextRef = Ubl.NextRef;
 
 export {udt};
 export {cct};
@@ -98,10 +102,14 @@ export type Schema = {
 
 export interface LoadedComponent {
   component: BasicComponent | AggregateComponent | RefComponent;
+  array: ArrayComponent;
   viewRef: ViewRef;
   isRequired: boolean;
   position: number;
+  name: string;
+  isLoaded: boolean;
 }
 
+export type UblElementType = Basic | Aggregate | NextRef;
 
 

@@ -4,7 +4,6 @@ import {Ubl} from "../../model/ubl.model";
 import Basic = Ubl.Basic;
 import {BasicService} from "../../service/basic.service";
 import {UpComponent} from "../helper/up.component";
-import {DownComponent} from "../helper/down.component";
 import {InputComponent} from "../helper/input.component";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {NgClass} from "@angular/common";
@@ -16,7 +15,6 @@ import {camelCaseToTitle} from "../../service/util";
   imports: [
     ReactiveFormsModule,
     UpComponent,
-    DownComponent,
     InputComponent,
     ThreeDotsComponent,
     NgClass
@@ -35,12 +33,15 @@ import {camelCaseToTitle} from "../../service/util";
         <div class="divider"></div>
         <div class="items">
           @for (item of requiredControls; track item.key; ) {
-            <ubl-input
-              [label]="item.title"
-              [inputId]="item.key"
-              [formControlName]="item.key"
-              [inputType]="item.type"
-            ></ubl-input>
+            <!-- not sure if should hide the required fields, but show too much empty required fields-->
+<!--            @if (isExpanded() || formGroup.controls[item.key]?.value) {-->
+              <ubl-input
+                [label]="item.title"
+                [inputId]="item.key"
+                [formControlName]="item.key"
+                [inputType]="item.type"
+              ></ubl-input>
+<!--            }-->
           }
 
           @for (item of nonRequiredControls; track item.key; let idx = $index, e = $even) {
@@ -59,12 +60,13 @@ import {camelCaseToTitle} from "../../service/util";
   `,
   styles: `
     .basic-container {
-      position: relative;
-      display: block;
-
+      display: grid;
+      grid-template-columns: max(1rem) 1fr;
+      padding: 0px 0.4rem;
       margin-bottom: 0.2rem;
 
       .top-item {
+        grid-column: span 2;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -77,7 +79,7 @@ import {camelCaseToTitle} from "../../service/util";
 
       .divider {
         width: 1px;
-        background: #5643fa;
+        background: #e2e0ef;
         margin-inline: 0.3rem;
       }
 
@@ -152,7 +154,7 @@ export class BasicComponent implements OnInit {
     })
 
     this.nonRequired = Object.keys(this.schema.properties).filter(name => !this.schema.required.includes(name));
-    this.getNonRequiredIfItHasValue()
+    this.populateModelForNonRequired()
 
     this.formGroup.valueChanges.subscribe(() => {
       this.checkValue.call(this);
@@ -167,6 +169,7 @@ export class BasicComponent implements OnInit {
     if (this.parentFormGroup instanceof FormGroup) {
       this.parentFormGroup.addControl(this.formGroupKey, this.formGroup);
     } else {
+      // if not a FormGroup, then it is a FormArray
       this.parentFormGroup.push(this.formGroup);
     }
   }
@@ -240,7 +243,7 @@ export class BasicComponent implements OnInit {
 
   }
 
-  private getNonRequiredIfItHasValue() {
+  private populateModelForNonRequired() {
     this.nonRequired.forEach(name => {
       if (this.model && this.model[name]) {
         let type = this.convertStringType(name);

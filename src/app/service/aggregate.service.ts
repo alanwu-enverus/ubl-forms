@@ -33,6 +33,7 @@ export class AggregateService {
       c. if type is undefined, go to the next level and repeat a and b. from the sample data, it seems that the type is undefined can be skipped the key, and directly go to the ref
   */
   isCacRef = (ref: string) => ref.startsWith(`../common/UBL-CommonAggregateComponents-2.3.json`);
+  isRef = (ref: string) => ref.startsWith(`#/definitions/`);
 
   basicService = inject(BasicService);
 
@@ -119,6 +120,21 @@ export class AggregateService {
             props[name] = array;
           } else {
             props[name] = this.aggregateCache.get(ref);
+          }
+        } else if (this.isRef(ref)) {
+          let nextRef = new NextRef();
+          nextRef.$ref = ref;
+          nextRef.title = properties[name].title;
+          nextRef.description = properties[name].description;
+
+          if (type === "array") {
+            let array = new Ubl.Array();
+            array.title = properties[name].title;
+            array.description = properties[name].description;
+            array.items = nextRef;
+            props[name] = array;
+          } else {
+            props[name] = nextRef;
           }
         }
       } else if (type === undefined && this.basicService.isBasicRef(ref)) {

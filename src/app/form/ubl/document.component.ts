@@ -116,11 +116,28 @@ export class DocumentComponent implements OnInit {
     this.vcr()?.clear()
 
     // this.doc?.required.filter(r => r === 'InvoiceLine').forEach((name) => {
+    //   const schema = this.doc.properties[name];
+    //   this.setupComponent(schema, this.model, name);
+    // });
+
     this.doc?.required.forEach((name) => {
       const field = this.doc.properties[name];
       const data = this.model ? this.model[name] : {};
       this.setupComponent(field, data, name);
     })
+
+  }
+
+  onClose() {
+    this.isExpanded.set(false);
+  }
+
+  async onOpen() {
+    this.isExpanded.set(true);
+    if (!this.nonRequiredAdded) {
+      await this.getNonRequired();
+      this.nonRequiredAdded = true;
+    }
   }
 
   private setupComponent(field: Ubl.Basic | Ubl.Aggregate | Array | Ubl.Extension, data, name) {
@@ -140,7 +157,7 @@ export class DocumentComponent implements OnInit {
       this.groupComponentRef?.setInput('description', field.description);
       this.groupComponentRef?.setInput('formGroupKey', name);
       this.groupComponentRef?.setInput('parentFormGroup', this.formGroup);
-      this.groupComponentRef?.setInput('loadNonRequiredIfRequiredIsEmpty', false);
+      this.groupComponentRef?.setInput('loadNonRequiredIfRequiredIsEmpty', true);
     } else if (field instanceof Array) {
       this.arrayComponentRef = this.vcr()?.createComponent(ArrayComponent);
       this.arrayComponentRef?.setInput('model', data);
@@ -151,17 +168,7 @@ export class DocumentComponent implements OnInit {
     }
   }
 
-  onClose() {
-    this.isExpanded.set(false);
-  }
 
-  async onOpen() {
-    this.isExpanded.set(true);
-    if (!this.nonRequiredAdded) {
-      await this.getNonRequired();
-      this.nonRequiredAdded = true;
-    }
-  }
 
 
   private async getNonRequired() {

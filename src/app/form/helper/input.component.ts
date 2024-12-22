@@ -49,6 +49,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
     }
   `,
   styles: `
+    //form layout
     .ubl-form-control {
       label,
       input {
@@ -57,7 +58,6 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
 
       label {
         margin-bottom: 4px;
-        font-weight: 600;
 
         &.required {
           &:after {
@@ -72,6 +72,53 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
         padding: 8px;
         width: 100%;
       }
+    }
+
+    //form input
+    .form__input {
+      font-size: 1.5rem;
+      font-family: inherit;
+      color: inherit;
+      padding: 0.2rem;
+      border-radius: 2px;
+      background-color: rgba(#f7f7f7, 0.5);
+      border: none;
+      border-bottom: 3px solid transparent;
+      width: 100%;
+      display: block;
+      transition: all .3s;
+    }
+
+    .form__input:required {
+      border-right: 1px solid #ff7730;
+    }
+
+    .form__input:valid {
+      border-right: none;
+    }
+
+    .form__input:focus {
+      outline: none;
+      box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+      border-bottom: 2px solid #55c57a;
+    }
+
+    .form__input:focus:invalid {
+      border-bottom: 2px solid #ff7730;
+    }
+
+    .form__input::-webkit-input-placeholder {
+      color: #999;
+    }
+
+    .form__label {
+      font-size: 1.2rem;
+      font-style: italic;
+      font-weight: 700;
+      margin-left: 0.2rem;
+      margin-top: 1px;
+      margin-bottom: 0px;
+      display: block;
     }
   `
 })

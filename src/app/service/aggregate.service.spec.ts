@@ -35,6 +35,11 @@ describe('CacService', () => {
     expect(result).not.toBeNull();
   });
 
+  it("getNonRequiredAggregatesByRef -- InvoiceLine", async () => {
+    let result = await service.getNonRequiredAggregatesByRef('InvoiceLine');
+    expect(result).not.toBeNull();
+  });
+
 
   it("getRequiredAggregatesByRef -- AccountingSupplierParty", async () => {
     let result = await service.getRequiredAggregatesByRef("../common/UBL-CommonAggregateComponents-2.3.json#/definitions/InvoiceLine");

@@ -3,7 +3,7 @@ import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {UpComponent} from "../helper/up.component";
 import {AddComponent} from "../helper/add.component";
 import {FormArray, FormGroup} from "@angular/forms";
-import {Ubl} from "../../model/ubl.model";
+import {Ubl, UblElementType} from "../../model/ubl.model";
 import Basic = Ubl.Basic;
 import Aggregate = Ubl.Aggregate;
 import Extension = Ubl.Extension;
@@ -15,7 +15,7 @@ import {RemoveComponent} from "../helper/remove.component";
 import {RefComponent} from "./ref.component";
 import {isEmpty} from "../../service/util";
 
-type UblElementType = Basic | Aggregate | NextRef;
+
 
 @Component({
   selector: 'ubl-array',
@@ -110,12 +110,20 @@ export class ArrayComponent implements OnInit {
 
   items: any[] = [];
   // formGroup = new FormGroup({});
-  formArray = new FormArray([]);
+  array = new FormArray([]);
   component;
 
+  public get formArray() : FormArray {
+    return this.array;
+  }
+
+  public onClose(idx: number){
+    this.onRemove(idx);
+  }
+
   ngOnInit(): void {
-    this.component =  this.schema instanceof Basic ? BasicComponent : AggregateComponent;
-    // this.component =  this.getComponentType(this.schema) ?? AggregateComponent;
+    // this.component =  this.schema instanceof Basic ? BasicComponent : AggregateComponent;
+    this.component =  this.getComponentType(this.schema) ?? BasicComponent;
     if (Array.isArray(this.model) && this.model.length > 0) {
       this.model.forEach((data, index) => {
         this.setupComponent(this.schema, data, this.formGroupKey, index);
@@ -123,7 +131,7 @@ export class ArrayComponent implements OnInit {
     } else {
       this.setupComponent(this.schema, {}, this.formGroupKey, 0);
     }
-    this.parentFormGroup.addControl(this.formGroupKey, this.formArray);
+    this.parentFormGroup.addControl(this.formGroupKey, this.array);
   }
 
   private setupComponent(field: any, model: any, name: string, index: number) {
@@ -133,7 +141,7 @@ export class ArrayComponent implements OnInit {
         schema: field,
         title: name,
         formGroupKey: index,
-        parentFormGroup: this.formArray,
+        parentFormGroup: this.array,
       })
     } else if (field instanceof Aggregate) {
       this.items.push({
@@ -142,34 +150,36 @@ export class ArrayComponent implements OnInit {
         title: field['title'],
         description: field['description'],
         formGroupKey: index,
-        parentFormGroup: this.formArray,
+        parentFormGroup: this.array,
+        refName: name,
       })
     }
-    // else if (field instanceof NextRef) {
-    //   this.items.push({
-    //     model: model,
-    //     schema: field,
-    //     title: field['title'],
-    //     description: field['description'],
-    //     formGroupKey: index,
-    //     parentFormGroup: this.formArray,
-    //     ref: field['$ref'],
-    //     loadRef: !isEmpty(model),
-    //     refName: name
-    //   })
-    //  }
+    else if (field instanceof NextRef) {
+      // should convert ref to aggregate component?
+      this.items.push({
+        model: model,
+        // schema: field,
+        title: field['title'],
+        description: field['description'],
+        formGroupKey: index,
+        parentFormGroup: this.array,
+        ref: field['$ref'],
+        loadRef: !isEmpty(model),
+        refName: name
+      })
+     }
   }
 
-  // private getComponentType(field: any) {
-  //   if (field instanceof NextRef) {
-  //     return RefComponent;
-  //   } else if (field instanceof AggregateComponent) {
-  //     return AggregateComponent;
-  //   } else if(field instanceof BasicComponent) {
-  //     return BasicComponent
-  //   }
-  //   return null;
-  // }
+  private getComponentType(field: any) {
+    if (field instanceof NextRef) {
+      return RefComponent;
+    } else if (field instanceof Aggregate) {
+      return AggregateComponent;
+    } else if(field instanceof Basic) {
+      return BasicComponent
+    }
+    return null;
+  }
 
 
   onAdd() {
@@ -178,6 +188,6 @@ export class ArrayComponent implements OnInit {
 
   onRemove(idx: number) {
     this.items.splice(idx, 1);
-    this.formArray.removeAt(idx);
+    this.array.removeAt(idx);
   }
 }
