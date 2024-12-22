@@ -22,10 +22,11 @@ export class AppComponent implements OnInit {
   ublType = 'Invoice';
   data: any;
   async ngOnInit(): Promise<void> {
-    let doc = await getSampleDocument("Invoice");
-    this.data = doc;
+    // this.data = await getSampleDocument("Invoice");
+    // let doc = await getSampleDocument("Invoice");
+    // this.data = doc["AccountingSupplierParty"];
     // this.data = new Array(doc['InvoiceLine'][0]);
-    console.log(this.data);
+    // console.log(this.data);
   }
 
 

@@ -25,6 +25,11 @@ describe('CacService', () => {
     expect(result).not.toBeNull();
   });
 
+  it("getRequiredAggregatesByRef -- #/definitions/PartyIdentification", async () => {
+    let result = await service.getRequiredAggregatesByRef('#/definitions/PartyIdentification');
+    expect(result).not.toBeNull();
+  });
+
   it("getNonRequiredAggregatesByRef -- Party", async () => {
     let result = await service.getNonRequiredAggregatesByRef('Party');
     expect(result).not.toBeNull();
@@ -39,6 +44,13 @@ describe('CacService', () => {
     let result = await service.getNonRequiredAggregatesByRef('InvoiceLine');
     expect(result).not.toBeNull();
   });
+
+  it("getNonRequiredAggregatesByRef --PartyIdentification", async () => {
+    let result = await service.getNonRequiredAggregatesByRef('PartyIdentification');
+    expect(result).not.toBeNull();
+  });
+
+
 
 
   it("getRequiredAggregatesByRef -- AccountingSupplierParty", async () => {

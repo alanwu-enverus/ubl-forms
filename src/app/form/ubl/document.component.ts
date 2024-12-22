@@ -115,7 +115,7 @@ export class DocumentComponent implements OnInit {
     this.doc = await this.docService.getDocumentRequiredSchema(this.docTypeName);
     this.vcr()?.clear()
 
-    // this.doc?.required.filter(r => r === 'InvoiceLine').forEach((name) => {
+    // this.doc?.required.filter(r => r === 'AccountingSupplierParty').forEach((name) => {
     //   const schema = this.doc.properties[name];
     //   this.setupComponent(schema, this.model, name);
     // });

@@ -131,12 +131,6 @@ export class AggregateComponent implements OnInit {
   allNonRequiredIsEmptyAndHaveNotRequired = false;
   isHostedByArray = false;
 
-  // note: this is to keep track of the components created in order.
-  // when onClose, if the component has NOT value, then close it. The ViewContainerRef API does not have a way to get the component instance
-  // private requiredComponentRefs = new Map<number, ComponentRef<BasicComponent | AggregateComponent | RefComponent>>(); //when conClose, call subcomponent to close too
-  // private nonRequiredComponentRefs = new Map<number, ComponentRef<BasicComponent | AggregateComponent | RefComponent>>(); // keep track of the non-required component created
-  // private viewRefs = new Map<number, ViewRef>();  // keep track of the view ref created, they are used to re-insert the component when open
-
   private loadedComponents: LoadedComponent[] = [];
 
   ngOnInit(): void {
@@ -145,9 +139,8 @@ export class AggregateComponent implements OnInit {
     this.nonRequired = Object.keys(this.schema.properties).filter(n => n !== 'UBLExtensions').filter(name => !this.schema.required.includes(name)) || [];
     this.isHostedByArray =  this.parentFormGroup instanceof FormArray;
 
-
+    this.populateModel();
     this.initRequired();
-    this.populateModelForNonRequired();
 
     if (this.loadNonRequiredIfRequiredIsEmpty && this.required.length === 0 && isEmpty(this.model)) {
       this.isExpanded.set(true);
@@ -155,15 +148,6 @@ export class AggregateComponent implements OnInit {
       this.nonRequiredAdded = true;
     }
 
-    // if (!this.isModelNotRequiredEmpty(this.model)) {
-    //   this.initNonRequired();
-    //   this.isExpanded.set(false);
-    //   this.closeComponent();
-    // } else if (this.required.length === 0 && this.loadNonRequiredIfRequiredIsEmpty && isEmpty(this.model)) {
-    //   this.initNonRequired();
-    // }
-
-    // this.loadNonRequiredIfRequiredIsEmpty = false; // try to load non-required only once
     this.addToParentControl();
   }
 
@@ -178,10 +162,6 @@ export class AggregateComponent implements OnInit {
   onClose() {
     this.isExpanded.set(false);
     this.closeComponents();
-    /*
-     if use close all components if empty, then need to change the code in onOpen
-     */
-    // this.closeAllComponentsIfEmpty();
   }
 
   onOpen() {
@@ -195,33 +175,17 @@ export class AggregateComponent implements OnInit {
       this.setupNonRequiredComponent();
       this.nonRequiredAdded = true;
     } else {
-      // if (this.allNonRequiredIsEmptyAndHaveNotRequired) {
-      //   this.setupNonRequiredComponent();
-      // } else {
-      //   this.loadedComponents.filter((component) => !component.isRequired).forEach((component) => {
-      //     if (component.component.formGroup && isEmpty(component.component.formGroup.value)) {
-      //       this.vcr().insert(component.viewRef, component.position);
-      //     }
-      //
-      //     // need to test to make sure this works
-      //     if (component.array && (component.array.formArray.length === 0 || component.array.formArray.controls.every(control => isEmpty(control.value)))) {
-      //       this.vcr().insert(component.viewRef, component.position);
-      //     }
-      //
-      //   })
-      // }
       if(this.vcr()?.length === 0) {
         // means clear all components, so reset required and non-required
+        this.populateModel(); // is needed?
         this.initRequired(); // likely required is empty
         this.setupNonRequiredComponent();
       } else {
         this.loadedComponents.filter((component) => !component.isRequired && !component.isLoaded).forEach((component) => {
-              // if (component.component.formGroup && isEmpty(component.component.formGroup.value)) {
               if (component.component) {
                 this.vcr().insert(component.viewRef, component.position);
                 component.isLoaded = true;
               }
-              // need to test to make sure this works
               if (component.array && (component.array.formArray.length === 0 || component.array.formArray.controls.every(control => isEmpty(control.value)))) {
                 this.vcr().insert(component.viewRef, component.position);
                 component.isLoaded = true;
@@ -232,10 +196,22 @@ export class AggregateComponent implements OnInit {
   }
 
   private initRequired() {
+    // if(!isEmpty(this.model)) {
+    //   Object.keys(this.model).forEach((name) => {
+    //     if (!!this.model[name] && this.required.includes(name)) {
+    //       const field = this.schema.properties[name];
+    //       const data = this.model[name];
+    //       this.setupComponent(field, data, name);
+    //     }
+    //   })
+    // }
+
     this.required.forEach((name) => {
-      const field = this.schema.properties[name];
-      const data = this.model ? this.model[name] : {};
-      this.setupComponent(field, data, name);
+      if (!this.loadedComponents.filter(c => c.isLoaded).map(c => c.name).includes(name)) {
+        const field = this.schema.properties[name];
+        const data = this.model ? this.model[name] : {};
+        this.setupComponent(field, data, name, false);
+      }
     })
   }
 
@@ -338,6 +314,7 @@ export class AggregateComponent implements OnInit {
           || (component.array && component.array.formArray.controls.every(control => isEmpty(control.value))));
         if (this.allNonRequiredIsEmptyAndHaveNotRequired) {
           this.vcr().clear();
+          this.loadedComponents = [];
         } else {
           nonRequiredComponents.forEach((component) => {
             this.closeAComponent(component);
@@ -376,7 +353,7 @@ export class AggregateComponent implements OnInit {
         }
       } else {
         component.array.formArray.controls.forEach(control => {
-          if (isEmpty(control.value) && (control instanceof BasicComponent || control instanceof AggregateComponent || control instanceof RefComponent)) {
+          if (control instanceof BasicComponent || control instanceof AggregateComponent || control instanceof RefComponent) {
             control.onClose();
           }
         })
@@ -384,43 +361,12 @@ export class AggregateComponent implements OnInit {
     }
   }
 
-  private closeAllComponentsIfEmpty() {
-    this.loadedComponents.forEach((component) => {
-      if (component.component) {
-        if (isEmpty(component.component.formGroup.value)) {
-          const index = this.vcr().indexOf(component.viewRef);
-          if (index >= 0) {
-            this.vcr().detach(index);
-          }
-        } else {
-            component.component.onClose();
-          }
-      }
-      if (component.array) {
-        if (component.array.formArray.length === 0 || component.array.formArray.controls.every(control => isEmpty(control.value))) {
-          const index = this.vcr().indexOf(component.viewRef);
-          if (index >= 0) {
-            this.vcr().detach(index);
-          }
-        } else {
-          component.array.formArray.controls.forEach(control => {
-            if (isEmpty(control.value) && (control instanceof BasicComponent || control instanceof AggregateComponent || control instanceof RefComponent)) {
-              control.onClose();
-            }
-          })
-        }
-      }
-    })
-  }
-
-  private isModelNotRequiredEmpty = (model: any) => this.nonRequired.every((name) => !model || !model.hasOwnProperty(name) || isEmpty(model[name]));
-
-  private populateModelForNonRequired() {
+  private populateModel() {
     if (!isEmpty(this.model)) {
       this.getNonRequiredSchema();
-
-      this.nonRequired.forEach((name) => {
-        if (this.model?.hasOwnProperty(name) && !!this.model[name]) {
+      Object.keys(this.model).forEach((name) => {
+        // if (!!this.model[name] && this.nonRequired.includes(name)) { //will including required and non-required fields
+        if (!!this.model[name] && Object.keys(this.schema.properties).includes(name)) {
           const field = this.schema.properties[name];
           const data = this.model[name];
           this.setupComponent(field, data, name, false);
@@ -429,16 +375,13 @@ export class AggregateComponent implements OnInit {
     }
   }
 
-  private getNonRequiredSchema() {
-    if (this.nonRequired.length === 0) {
-      // if (this.isHostedByArray) { // can not handle array has ref component
-      if (typeof this.formGroupKey === 'number') {
-        this.schema = this.service.getNonRequiredAggregatesByRef(this.refName);
-        this.nonRequired = Object.keys(this.schema.properties).filter(n => n !== 'UBLExtensions').filter(name => !this.schema.required.includes(name)) || [];
-      } else {
-        this.schema = this.service.getNonRequiredAggregatesByRef(this.formGroupKey);
-        this.nonRequired = Object.keys(this.schema.properties).filter(n => n !== 'UBLExtensions').filter(name => !this.schema.required.includes(name)) || [];
-      }
-    }
+private getNonRequiredSchema() {
+  if (this.nonRequired.length === 0) {
+    const ref = typeof this.formGroupKey === 'number' ? this.refName : this.formGroupKey;
+    const non_required = this.service.getNonRequiredAggregatesByRef(ref);
+    this.schema.properties = { ...this.schema.properties, ...non_required.properties };
+    this.nonRequired = Object.keys(this.schema.properties)
+      .filter(name => name !== 'UBLExtensions' && !this.schema.required.includes(name)) || [];
   }
+}
 }

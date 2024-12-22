@@ -68,6 +68,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       border-bottom: 3px solid transparent;
       transition: all .3s;
       flex-basis: 85%;
+      flex-grow: 1;
     }
 
     .form__input:required {
@@ -99,7 +100,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       margin-left: 0.2rem;
       margin-top: 1px;
       margin-bottom: 0px;
-      flex-basis: 13%;
+      flex-basis: 10%;
       align-self: center;
       text-align: right;
     }
