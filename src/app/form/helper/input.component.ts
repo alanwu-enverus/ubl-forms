@@ -28,9 +28,9 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
   ],
   template: `
     @if (control) {
-      <div>
+      <div class="container">
         @if (control?.value) {
-          <label [for]="inputId" class="form__label">{{ label }}</label>
+          <label [for]="inputId" class="form__label">{{ label }}:</label>
         }
         <input
           [required]="isRequired"
@@ -49,31 +49,13 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
     }
   `,
   styles: `
-    //form layout
-    .ubl-form-control {
-      label,
-      input {
-        display: block;
-      }
-
-      label {
-        margin-bottom: 4px;
-
-        &.required {
-          &:after {
-            content: "*";
-            color: red;
-          }
-        }
-      }
-
-      input {
-        box-sizing: border-box;
-        padding: 8px;
-        width: 100%;
-      }
+    .container {
+      display: flex;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: start;
+      align-items: center;
     }
-
     //form input
     .form__input {
       font-size: 1.5rem;
@@ -84,9 +66,8 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       background-color: rgba(#f7f7f7, 0.5);
       border: none;
       border-bottom: 3px solid transparent;
-      width: 100%;
-      display: block;
       transition: all .3s;
+      flex-basis: 85%;
     }
 
     .form__input:required {
@@ -118,7 +99,9 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       margin-left: 0.2rem;
       margin-top: 1px;
       margin-bottom: 0px;
-      display: block;
+      flex-basis: 13%;
+      align-self: center;
+      text-align: right;
     }
   `
 })
