@@ -18,11 +18,12 @@ import {getSampleDocument} from "./service/util";
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  title = 'dynaform';
   ublType = 'Invoice';
   data: any;
   async ngOnInit(): Promise<void> {
-    // this.data = await getSampleDocument("Invoice");
+    this.data = await getSampleDocument("Invoice");
+
+    /* for test and debug */
     // let doc = await getSampleDocument("Invoice");
     // this.data = doc["AccountingSupplierParty"];
     // this.data = new Array(doc['InvoiceLine'][0]);

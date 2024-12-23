@@ -56,6 +56,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       justify-content: start;
       align-items: center;
     }
+
     //form input
     .form__input {
       font-size: 1.5rem;
@@ -97,9 +98,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       font-size: 1.2rem;
       font-style: italic;
       font-weight: 700;
-      margin-left: 0.2rem;
-      margin-top: 1px;
-      margin-bottom: 0px;
+      margin: 1px 0.5rem 0px 0.2rem;
       flex-basis: 10%;
       align-self: center;
       text-align: right;

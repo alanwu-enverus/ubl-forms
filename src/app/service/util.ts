@@ -1,3 +1,14 @@
+import {BasicComponent} from "../form/ubl/basic.component";
+import {LoadedComponent, Ubl} from "../model/ubl.model";
+import Basic = Ubl.Basic;
+import Aggregate = Ubl.Aggregate;
+import NextRef = Ubl.NextRef;
+import {ArrayComponent} from "../form/ubl/array.component";
+import {RefComponent} from "../form/ubl/ref.component";
+import {Signal, ViewContainerRef} from "@angular/core";
+import {FormGroup} from "@angular/forms";
+import {AggregateComponent} from "../form/ubl/aggregate.component";
+
 export function getRefName(ref: string) {
   let result = ref;
 
@@ -8,29 +19,6 @@ export function getRefName(ref: string) {
   }
 
   return result;
-}
-
-export function removeNulls(obj: any) {
-  for (let key in obj) {
-    if (obj[key] === '' || obj[key] === null) {
-      delete obj[key];
-    } else if (Object.prototype.toString.call(obj[key]) === '[object Object]') {
-      removeNulls(obj[key]);
-    } else if (Array.isArray(obj[key])) {
-      if (obj[key].length == 0) {
-        delete obj[key];
-      } else {
-        for (let _key in obj[key]) {
-          removeNulls(obj[key][_key]);
-        }
-        obj[key] = obj[key].filter(value => Object.keys(value).length !== 0);
-        if (obj[key].length == 0) {
-          delete obj[key];
-        }
-      }
-    }
-  }
-  return obj;
 }
 
 export function removeEmpty(object: any) {
@@ -46,6 +34,8 @@ export function removeEmpty(object: any) {
         } else {
           delete object[k];
         }
+      } else if (v === '' || v === null || v === undefined) {
+        delete object[k];
       }
     });
   return object;
@@ -56,49 +46,37 @@ export function isEmpty(obj: any) {
     return true;
   }
 
-  // Check if obj is an object (not an array)
   if (typeof obj === "object" && !Array.isArray(obj)) {
-    // Check if the object has no own properties
     if (Object.keys(obj).length === 0) {
       return true;
     }
-
-    // Recursively check each property of the object
     for (const key in obj) {
       if (obj.hasOwnProperty(key) && !isEmpty(obj[key])) {
         return false;
       }
     }
-
     return true;
   }
-
-  // Check if obj is an array
   if (Array.isArray(obj)) {
-    // Check if the array is empty or all its elements are empty
     return obj.length === 0 || obj.every((item) => isEmpty(item));
   }
 
-  // For primitive types (number, string, boolean), it's not empty
+  if(typeof obj === 'string') {
+    return obj.trim() === '';
+  }
   return false;
 }
 
 export function camelCaseToTitle(text: string) {
-  return text.split(/([A-Z]|\d)/).map((v, i, arr) => {
-    // If first block then capitalise 1st letter regardless
+  return text?.split(/([A-Z]|\d)/).map((v, i, arr) => {
     if (!i) return v.charAt(0).toUpperCase() + v.slice(1);
-    // Skip empty blocks
     if (!v) return v;
-    // Underscore substitution
     if (v === '_') return " ";
-    // We have a capital or number
     if (v.length === 1 && v === v.toUpperCase()) {
       const previousCapital = !arr[i - 1] || arr[i - 1] === '_';
       const nextWord = i + 1 < arr.length && arr[i + 1] && arr[i + 1] !== '_';
       const nextTwoCapitalsOrEndOfString = i + 3 > arr.length || !arr[i + 1] && !arr[i + 3];
-      // Insert space
       if (!previousCapital || nextWord) v = " " + v;
-      // Start of word or single letter word
       if (nextWord || (!previousCapital && !nextTwoCapitalsOrEndOfString)) v = v;
     }
     return v;
@@ -111,230 +89,133 @@ export async function getSampleDocument(name: string): Promise<any> {
   return data[name];
 }
 
-// export function camelCaseToTitle(text: string) {
-//   return text.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1")
-// }
+export function createBasicComponentRef(vcr: ViewContainerRef, formGroup: FormGroup,  schema: Basic, data: any, name: string, isDocumentLevel: boolean = false) {
+  const ref = vcr.createComponent(BasicComponent);
+  ref?.setInput('model', data);
+  ref?.setInput('schema', schema);
+  ref?.setInput('title', name);
+  ref?.setInput('formGroupKey', name);
+  ref?.setInput('parentFormGroup', formGroup);
+  ref?.setInput('documentLevel', isDocumentLevel);
+  return ref;
+}
 
+export function createAggregateComponentRef(vcr: ViewContainerRef, formGroup: FormGroup, schema: Aggregate, data: any, name: string) {
+  const ref = vcr.createComponent(AggregateComponent);
+  ref?.setInput('model', data);
+  ref?.setInput('schema', schema);
+  ref?.setInput('title', schema['title']);
+  ref?.setInput('description', schema['description']);
+  ref?.setInput('formGroupKey', name);
+  ref?.setInput('parentFormGroup', formGroup);
+  return ref;
+}
 
-// export function isEmpty(myObject) {
-//   if(Object.keys(myObject).length === 0) return true;
-//   let result = false;
-//   for(var key in myObject) {
-//     if(myObject[key] == null || myObject[key] == undefined) return true;
-//     if((typeof myObject[key] === 'object' && Object.keys(myObject[key]).length === 0)) return true;
-//     if((typeof myObject[key] === 'string' && myObject[key].trim().length === 0)) return true;
-//     if(myObject[key] instanceof Object) return isEmpty(myObject[key]);
-//   }
-//   return false;
-// }
+export function createArrayComponentRef(vcr: ViewContainerRef, formGroup: FormGroup, schema: Ubl.Array, data: any, name: string) {
+  const ref = vcr.createComponent(ArrayComponent);
+  ref?.setInput('model', data);
+  ref?.setInput('schema', schema.items);
+  ref?.setInput('title', schema.title);
+  ref?.setInput('formGroupKey', name);
+  ref?.setInput('parentFormGroup', formGroup);
+  return ref;
+}
 
-// export type cache = {
-//   [key: string]: any;
-// }
-//
-// export function levelString(data: string, count: number, indent = ' ') {
-//   indent = indent.repeat(count * 2);
-//   return `${indent} ${count} : ${data}`;
-// };
-//
-// //host basic schema
-// export type Schema = {
-//   title: string;
-//   description: string;
-//   required: string[];
-//   properties: {
-//     [key: string]: {
-//       type: string,
-//       format?: string,
-//     };
-//   },
-//   additionalProperties?: boolean;
-// }
-//
-// //host properties key->schema ?? seems this is only for UblExtension type ??
-// export type Properties = {
-//   [key: string]: Schema
-// }
-//
-// //aggregate type
-// export type Aggregate = {
-//   key: string;
-//   schemas: Schema | Schema[] | Aggregate | Aggregate[]; // can be renamed to properties
-//   type: string;
-//   title: string;
-//   description: string;
-// }
-//
-// //host document type
-// export type UblDocument = {
-//   title: string;
-//   description: string;
-//   required: string[];
-//   properties: {
-//     [key: string]: Schema | Properties | Aggregate | Aggregate[];
-//   },
-// }
+export function createRefComponentRef(vcr: ViewContainerRef, formGroup: FormGroup, schema: NextRef, data: any, name: string) {
+  const ref = vcr.createComponent(RefComponent);
+  ref?.setInput('model', data);
+  ref?.setInput('title', schema['title']);
+  ref?.setInput('description', schema['description']);
+  ref?.setInput('parentFormGroup', formGroup);
+  ref?.setInput('formGroupKey', name);
+  ref?.setInput('ref', schema['$ref']);
+  ref?.setInput('loadRef', !isEmpty(data));
+  ref?.setInput('refName', name);
+  return ref;
+}
 
-// pass it to ui aggregate component to determine how to render
-// export enum UblElementType  {
-//   BasicAggregate = 0,
-//   RequiredAggregate = 1,
-//   NonRequiredAggregate = 2,
-//   ArrayAggregate = 3,
-// }
+export function createComponentRef(vcr: ViewContainerRef, formGroup: FormGroup, schema: any, data: any, name: string, isDocumentLevel: boolean = false) {
+  if (schema instanceof Basic) {
+    return createBasicComponentRef(vcr, formGroup, schema, data, name, isDocumentLevel);
+  } else if (schema instanceof Aggregate) {
+    return createAggregateComponentRef(vcr, formGroup, schema, data, name);
+  } else if (schema instanceof NextRef) {
+    return createRefComponentRef(vcr, formGroup, schema, data, name);
+  }
+  return null;
+}
 
+export function setupAComponent(loadedComponents: LoadedComponent[], vcr:ViewContainerRef, formGroup: FormGroup, schema: any, data, name: string, isRequired:boolean, isDocumentLevel=false) {
+  const componentRef = !(schema instanceof Ubl.Array) ? createComponentRef(vcr, formGroup, schema, data, name, isDocumentLevel) : null;
+  const arrayComponentRef = schema instanceof Ubl. Array ? createArrayComponentRef(vcr, formGroup, schema, data, name) : null;
 
-// // todo: should not needed to pass parent formGroup and return new formControl like as real function? is it better
-// export function generateControl(formGroup: FormGroup, model: any, name: string, required: boolean) {
-//   if (!formGroup.controls[name]) {
-//     const controlValue = model?.[name] ?? null;
-//     formGroup.addControl(name, new FormControl(controlValue, required ? Validators.required : null));
-//   }
-//   return formGroup.get(name) as FormControl;
-// }
-//
-// export function generateGroup(formGroup: FormGroup, name: string, required: boolean) {
-//   //todo: pass required to force expend
-//   if (formGroup.controls[name] == undefined) {
-//     formGroup.addControl(name, new FormGroup({}));
-//   }
-//   return formGroup.get(name) as FormGroup;
-// }
-//
-//
-// export function indentString(data: string, count: number, indent = ' ') {
-//   indent = indent.repeat(count * 2);
-//   return `${indent}${data}`;
-// };
-//
-//
-//
-//
-// export function getLevel1() {
-//   return [
-//     'ActivityProperty',
-//     'AddressLine',
-//     'AirTransport',
-//     'AuctionTerms',
-//     'CardAccount',
-//     'CatalogueReference',
-//     'Clause',
-//     'CommodityClassification',
-//     'Communication',
-//     'Condition',
-//     'ConsumptionAverage',
-//     'ConsumptionCorrection',
-//     'ContractExecutionRequirement',
-//     'ContractingActivity',
-//     'ContractingPartyType',
-//     'ContractingRepresentationType',
-//     'ContractingSystem',
-//     'Country',
-//     'CreditAccount',
-//     'DeliveryUnit',
-//     'Dimension',
-//     'DocumentMetadata',
-//     'EconomicOperatorRole',
-//     'EncryptionCertificatePathChain',
-//     'EncryptionSymmetricAlgorithm',
-//     'EventComment',
-//     'EventTacticEnumeration',
-//     'EvidenceSupplied',
-//     'ExternalReference',
-//     'Fee',
-//     'ForecastException',
-//     'ForecastExceptionCriterionLine',
-//     'ItemComparison',
-//     'ItemPropertyGroup',
-//     'ItemPropertyRange',
-//     'Language',
-//     'LocationCoordinate',
-//     'MessageDelivery',
-//     'MeterProperty',
-//     'MeterReading',
-//     'MonetaryTotal',
-//     'PartyIdentification',
-//     'PartyName',
-//     'Payment',
-//     'Period',
-//     'PhysicalAttribute',
-//     'PortCallPurpose',
-//     'PostAwardProcess',
-//     'Prize',
-//     'ProcessJustification',
-//     'ProcurementAdditionalType',
-//     'ProcurementProjectLotReference',
-//     'RailTransport',
-//     'Regulation',
-//     'RelatedItem',
-//     'ResponseValue',
-//     'RoadTransport',
-//     'SanitaryMeasure',
-//     'SecondaryHazard',
-//     'SecurityClearanceTerm',
-//     'SecurityMeasure',
-//     'ServiceFrequency',
-//     'ShipRequirement',
-//     'SocialMediaProfile',
-//     'SubcontractTerms',
-//     'Temperature',
-//     'TransportEquipmentSeal',
-//     'UnstructuredPrice',
-//     'VesselDynamics',
-//     'WebSiteAccess',
-//   ];
-// }
-//
-// export function getLevel2() {
-//   return [
-//     'Address',
-//     'AppealTerms',
-//     'Attachment',
-//     'Clause',
-//     'ConsumptionHistory',
-//     'ConsumptionReportReference',
-//     'Contact',
-//     'ContractingParty',
-//     'Declaration',
-//     'DocumentDistribution',
-//     'EconomicOperatorShortList',
-//     'EventTactic',
-//     'FinancialGuarantee',
-//     'HazardousGoodsTransit',
-//     'ImmobilizedSecurity',
-//     'ItemIdentification',
-//     'LotsGroup',
-//     'Meter',
-//     'PropertyIdentification',
-//     'Renewal',
-//     'ResultOfVerification',
-//     'RetailPlannedImpact',
-//     'ServiceLevelAgreement',
-//     'ShareholderParty',
-//     'Status',
-//     'Stowage',
-//     'TenderingCriterionResponse',
-//     'WebSite',
-//     'WinningParty',
-//   ];
-// }
-//
-// //start from here, the ordering must be keeped
-// export function getLevel3() {
-//   return [
-//     'FinancialInstitution',
-//     'Response',
-//     'DocumentReference',
-//     'TaxScheme',
-//     'TaxCategory',
-//     'Signature',
-//     'Certificate',
-//     'Storage',
-//     'Location',
-//     'Despatch',
-//     'TransportEvent'
-//   ]
-// }
-//
-// export class removeEmpty {
-// }
+  if (componentRef || arrayComponentRef) {
+    loadedComponents.push({
+      component: componentRef ? componentRef.instance : null,
+      viewRef: vcr.get(vcr.length - 1),
+      isRequired,
+      position: vcr.length - 1,
+      array: arrayComponentRef ? arrayComponentRef.instance : null,
+      name,
+      isLoaded: true
+    });
+  }
+}
+
+export  function closeAComponent(component: LoadedComponent, vcr:ViewContainerRef) {
+  if (component.component) {
+    if (isEmpty(component.component.formGroup.value)) {
+      const index = vcr.indexOf(component.viewRef);
+      if (index >= 0) {
+        vcr.detach(index);
+        component.isLoaded = false;
+
+      }
+    } else {
+      component.component.onClose();
+    }
+  }
+  if (component.array) {
+    if (component.array.formArray.length === 0 || component.array.formArray.controls.every(control => isEmpty(control.value))) {
+      const index = vcr.indexOf(component.viewRef);
+      if (index >= 0) {
+        vcr.detach(index);
+        component.isLoaded = false;
+      }
+    } else {
+      component.array.formArray.controls.forEach(control => {
+        if (control instanceof BasicComponent || control instanceof AggregateComponent || control instanceof RefComponent) {
+          control.onClose();
+        }
+      })
+    }
+  }
+}
+
+export function closeComponents(loadedComponents: LoadedComponent[], vcr:ViewContainerRef, required: string[]) {
+  if (vcr?.length > 0) {
+    const nonRequiredComponents = loadedComponents.filter((component) => !component.isRequired);
+    const requiredComponents = loadedComponents.filter((component) => component.isRequired);
+
+    if (required.length === 0) {
+      let allNonRequiredIsEmptyAndHaveNotRequired = nonRequiredComponents.every((component) => (component.component && isEmpty(component.component.formGroup?.value))
+        || (component.array && component.array.formArray.controls.every(control => isEmpty(control.value))));
+      if (allNonRequiredIsEmptyAndHaveNotRequired) {
+        vcr.clear();
+        loadedComponents.length = 0;
+      } else {
+        nonRequiredComponents.forEach((component) => {
+          closeAComponent(component, vcr);
+        });
+      }
+    } else {
+      nonRequiredComponents.forEach((component) => {
+        closeAComponent(component, vcr);
+      });
+
+      requiredComponents.forEach((component) => {
+        component.component?.onClose();
+      });
+    }
+  }
+}

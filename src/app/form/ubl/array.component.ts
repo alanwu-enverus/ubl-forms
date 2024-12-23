@@ -67,7 +67,7 @@ import {isEmpty} from "../../service/util";
 
       .folder {
         margin: 0 0 0.5em 0.86em;
-        padding: 0.5em 0em 0.5em 1.5em;
+        padding: 0.5em 0em 0.5em 0.5em;
         border-left: 0.1em #ccc dotted;
         border-bottom: 0.1em #ccc dotted;
       }

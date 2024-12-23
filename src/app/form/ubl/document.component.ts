@@ -1,25 +1,19 @@
-import {Component, ComponentRef, inject, Input, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
+import {Component, inject, input, Input, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
 import {BasicComponent} from "./basic.component";
 import {FormGroup, ReactiveFormsModule} from "@angular/forms";
-import {removeEmpty} from "../../service/util";
+import {camelCaseToTitle, closeComponents, isEmpty, removeEmpty, setupAComponent} from "../../service/util";
 import {DocumentService} from "../../service/document.service";
 import {AggregateService} from "../../service/aggregate.service";
 import {BasicService} from "../../service/basic.service";
 import Document = Ubl.Document;
-import Basic = Ubl.Basic;
-import {AggregateComponent} from "./aggregate.component";
 import {JsonPipe} from "@angular/common";
-import {Ubl} from "../../model/ubl.model";
-import Aggregate = Ubl.Aggregate;
-import Array = Ubl.Array;
-import {ArrayComponent} from "./array.component";
+import {LoadedComponent, Ubl} from "../../model/ubl.model";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {UpComponent} from "../helper/up.component";
+import {AddComponent} from "../helper/add.component";
+import {RemoveComponent} from "../helper/remove.component";
+import {ExpandComponent} from "../helper/expand.component";
 
-/*
-  1. when the first level, can skip the required clicking to expand. otherwise, too many expand in such as party has 4 expands
-  2. when click expand, load reference schema and create aggregate component
- */
 
 @Component({
   selector: 'ubl-document',
@@ -29,16 +23,20 @@ import {UpComponent} from "../helper/up.component";
     ReactiveFormsModule,
     JsonPipe,
     ThreeDotsComponent,
-    UpComponent
+    UpComponent,
+    AddComponent,
+    RemoveComponent,
+    ExpandComponent
   ],
   template: `
     <form [formGroup]="formGroup">
       <div class="document-container">
-        <div class="title">{{ doc?.title }}</div>
+        <div class="title">{{ convertTitle(docSchema?.title) }}</div>
         <div class="sub-title">
           <div class="description">
-            {{ doc?.description }}
+            {{ docSchema?.description }}
           </div>
+
           <div class="right-conner">
             @if (isExpanded()) {
               <ubl-up (closeRequest)="onClose()"></ubl-up>
@@ -49,13 +47,24 @@ import {UpComponent} from "../helper/up.component";
         </div>
 
         <ng-container #container></ng-container>
+
       </div>
     </form>
+
+    @if (isLoading()) {
+      <div class="spinner-container">
+        <div class="loader"> </div>
+      </div>
+    }
+    <div class="note">
+      Please note: <ubl-three-dots></ubl-three-dots> is to expand the section. <ubl-expand></ubl-expand> is to load a component <ubl-up></ubl-up> is to collapse the section. <ubl-add></ubl-add> is to add a new item. <ubl-remove></ubl-remove> is to remove an item.
+    </div>
+
     <pre>{{ removeEmpty(formGroup.value) | json }}</pre>
   `,
   styles: `
     .document-container {
-      padding: 0px 0.4rem;
+      padding: 0px 1rem;
       display: flex;
       flex-direction: column;
     }
@@ -86,98 +95,150 @@ import {UpComponent} from "../helper/up.component";
       padding-right: 0.5rem;
     }
 
+    .note{
+      padding: 1rem;
+      font-size: 1.8rem;
+      font-weight: 100;
+      text-align: center;
+    }
 
+    // Loader
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 100vh;
+    }
+
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite; /* Safari */
+      animation: spin 2s linear infinite;
+    }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `
 })
-// todo: need to add expand to load non-required fields
+
 export class DocumentComponent implements OnInit {
   @Input() model?: any;
-  @Input() title?: string;
   @Input() docTypeName: string;
 
   isExpanded = signal(false);
+  isLoading = signal(false);
+
   protected readonly removeEmpty = removeEmpty;
-  nonRequiredAdded = false;
 
   docService = inject(DocumentService);
-  aggregateService = inject(AggregateService);
-  basicService = inject(BasicService);
 
-  doc: Document;
+  docSchema: Document;
   formGroup = new FormGroup({});
   vcr = viewChild('container', {read: ViewContainerRef});
-  basicComponentRef?: ComponentRef<BasicComponent>;
-  groupComponentRef?: ComponentRef<AggregateComponent>;
-  arrayComponentRef?: ComponentRef<ArrayComponent>;
 
+  required = []
+  nonRequired = [];
+  nonRequiredAdded = false;
+
+  private loadedComponents: LoadedComponent[] = [];
+
+  convertTitle = (value: string) => camelCaseToTitle(value?.replace('. Type', '').replace('. Details', ''));
 
   async ngOnInit() {
-    this.doc = await this.docService.getDocumentRequiredSchema(this.docTypeName);
+    this.isLoading.set(true);
+
+    this.docSchema = await this.docService.getDocumentRequiredSchema(this.docTypeName);
     this.vcr()?.clear()
 
-    // this.doc?.required.filter(r => r === 'AccountingSupplierParty').forEach((name) => {
-    //   const schema = this.doc.properties[name];
-    //   this.setupComponent(schema, this.model, name);
-    // });
+    this.required = this.docSchema.required || [];
 
-    this.doc?.required.forEach((name) => {
-      const field = this.doc.properties[name];
-      const data = this.model ? this.model[name] : {};
-      this.setupComponent(field, data, name);
-    })
+    await this.populateModel();
+    this.initRequired();
 
+    this.isLoading.set(false);
   }
 
   onClose() {
     this.isExpanded.set(false);
+    closeComponents(this.loadedComponents, this.vcr(), this.required);
   }
 
   async onOpen() {
     this.isExpanded.set(true);
     if (!this.nonRequiredAdded) {
-      await this.getNonRequired();
+      await this.initNonRequired();
       this.nonRequiredAdded = true;
+    } else {
+      this.loadedComponents.filter((component) => !component.isRequired && !component.isLoaded).forEach((component) => {
+        if (component.component) {
+          this.vcr().insert(component.viewRef, component.position);
+          component.isLoaded = true;
+        }
+        if (component.array && (component.array.formArray.length === 0 || component.array.formArray.controls.every(control => isEmpty(control.value)))) {
+          this.vcr().insert(component.viewRef, component.position);
+          component.isLoaded = true;
+        }
+      })
     }
   }
 
-  private setupComponent(field: Ubl.Basic | Ubl.Aggregate | Array | Ubl.Extension, data, name) {
-    if (field instanceof Basic) {
-      this.basicComponentRef = this.vcr()?.createComponent(BasicComponent);
-      this.basicComponentRef?.setInput('model', data);
-      this.basicComponentRef?.setInput('schema', field);
-      this.basicComponentRef?.setInput('title', name);
-      this.basicComponentRef?.setInput('formGroupKey', name);
-      this.basicComponentRef?.setInput('documentLevel', true);
-      this.basicComponentRef?.setInput('parentFormGroup', this.formGroup);
-    } else if (field instanceof Aggregate) {
-      this.groupComponentRef = this.vcr()?.createComponent(AggregateComponent);
-      this.groupComponentRef?.setInput('model', data);
-      this.groupComponentRef?.setInput('schema', field);
-      this.groupComponentRef?.setInput('title', field.title);
-      this.groupComponentRef?.setInput('description', field.description);
-      this.groupComponentRef?.setInput('formGroupKey', name);
-      this.groupComponentRef?.setInput('parentFormGroup', this.formGroup);
-      this.groupComponentRef?.setInput('loadNonRequiredIfRequiredIsEmpty', true);
-    } else if (field instanceof Array) {
-      this.arrayComponentRef = this.vcr()?.createComponent(ArrayComponent);
-      this.arrayComponentRef?.setInput('model', data);
-      this.arrayComponentRef?.setInput('schema', field.items);
-      this.arrayComponentRef?.setInput('title', field.title);
-      this.arrayComponentRef?.setInput('formGroupKey', name);
-      this.arrayComponentRef?.setInput('parentFormGroup', this.formGroup);
-    }
+  private initRequired() {
+    this.required.forEach((name) => {
+      if (!this.loadedComponents.filter(c => c.isLoaded).map(c => c.name).includes(name)) {
+        const schema = this.docSchema.properties[name];
+        const data = this.model ? this.model[name] : {};
+        setupAComponent(this.loadedComponents, this.vcr(), this.formGroup, schema, data, name, true, true);
+      }
+    })
   }
 
-
-
-
-  private async getNonRequired() {
+  private async initNonRequired() {
     let nonRequiredFields = await this.docService.getDocumentNonRequiredSchema(this.docTypeName);
     let nonRequiredFieldNames = Object.keys(nonRequiredFields.properties)
     nonRequiredFieldNames.forEach((name) => {
-      const field = nonRequiredFields.properties[name];
-      const data = this.model ? this.model[name] : {};
-      this.setupComponent(field, data, name);
+      // is this logic correct? is possible isLoaded is false but the component is already existing to cause duplicate?
+      if (!this.loadedComponents.filter(c => c.isLoaded).map(c => c.name).includes(name)) {
+        const schema = nonRequiredFields.properties[name];
+        const data = this.model ? this.model[name] : {};
+        setupAComponent(this.loadedComponents, this.vcr(), this.formGroup, schema, data, name, false, true);
+      }
     })
   }
+
+  private async populateModel() {
+    if (!isEmpty(this.model)) {
+      await this.getNonRequiredSchema();
+      Object.keys(this.model).forEach((name) => {
+        let isRequired = this.docSchema.required.includes(name);
+        if (!!this.model[name] && Object.keys(this.docSchema.properties).includes(name)) {
+          const schema = this.docSchema.properties[name];
+          const data = this.model[name];
+          setupAComponent(this.loadedComponents, this.vcr(), this.formGroup, schema, data, name, isRequired, true);
+        }
+      })
+    }
+  }
+
+  private async getNonRequiredSchema() {
+    if (this.nonRequired.length === 0) {
+      const non_required = await this.docService.getDocumentNonRequiredSchema(this.docTypeName)
+      this.docSchema.properties = {...this.docSchema.properties, ...non_required.properties};
+      this.nonRequired = Object.keys(this.docSchema.properties)
+        .filter(name => name !== 'UBLExtensions' && !this.docSchema.required.includes(name)) || [];
+    }
+  }
+
 }
