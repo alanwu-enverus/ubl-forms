@@ -15,7 +15,7 @@ import {BasicComponent} from "./basic.component";
 import {UpComponent} from "../helper/up.component";
 import {AggregateService} from "../../service/aggregate.service";
 import {RefComponent} from "./ref.component";
-import {camelCaseToTitle, closeComponents, isEmpty, setupAComponent} from "../../service/util";
+import {camelCaseToTitle, clearFormGroup, closeComponents, isEmpty, setupAComponent} from "../../service/util";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {ArrayComponent} from "./array.component";
 
@@ -170,7 +170,7 @@ export class AggregateComponent implements OnInit {
     } else {
       if (this.vcr()?.length === 0 && this.loadedComponents.length === 0 ) {
         // means clear all components, so reset required and non-required
-        this.clearFormGroup(this.formGroup);
+        clearFormGroup(this.formGroup);
 
         this.populateModel(); // is needed?
         this.initRequired(); // likely required is empty
@@ -234,13 +234,6 @@ export class AggregateComponent implements OnInit {
       this.schema.properties = {...this.schema.properties, ...non_required.properties};
       this.nonRequired = Object.keys(this.schema.properties)
         .filter(name => name !== 'UBLExtensions' && !this.schema.required.includes(name)) || [];
-    }
-  }
-
-  private clearFormGroup(formGroup: FormGroup) {
-    while(Object.keys(formGroup.controls).length){
-      const toRemove = Object.keys(formGroup.controls)[0];
-      formGroup.removeControl(toRemove)
     }
   }
 }

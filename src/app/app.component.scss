@@ -1,0 +1,259 @@
+$bp-largest: 75em; // 1200px
+$bp-large: 68.75em; // 1100px
+$bp-medium: 56.25em; // 900px
+$bp-small: 37.5em; // 600px
+$bp-smallest: 31.25em; // 500px
+
+.container {
+  background-color: var(--color-grey-light-1);
+
+  min-height: 50rem;
+
+  @media only screen and (max-width: $bp-largest) {
+    margin: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+}
+
+.header {
+  font-size: 2rem;
+  height: 7rem;
+  background-color: #516cb2;
+  border-bottom: var(--line);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  @media only screen and (max-width: $bp-smallest) {
+    flex-wrap: wrap;
+    align-content: space-around;
+  }
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: #fff;
+    letter-spacing: 1px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    @media only screen and (max-width: $bp-smallest) {
+      font-size: 2rem;
+    }
+  }
+
+  .sub-title {
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: #faf9f9;
+    letter-spacing: 1px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    @media only screen and (max-width: $bp-smallest) {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+
+.content {
+  display: flex;
+
+  @media only screen and (max-width: $bp-medium) {
+    flex-direction: column;
+  }
+}
+
+.description {
+  flex: 0 0 18%;
+  padding: 1rem;
+  font-size: 1.3rem;
+
+  justify-content: flex-start;
+
+  .card{
+    background-color: #e1e1e6;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-weight: 900;
+    font-size: medium;
+  }
+
+  article {
+    padding-left: 2rem;
+    padding-bottom: 1rem;
+
+    .high-light {
+      font-weight: bold !important;
+      font-size: 1.4rem;
+    }
+  }
+
+  .feedback{
+    font-style: italic;
+  }
+
+
+  ul {
+    padding-left: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  ul.none {
+    list-style-type: none;
+  }
+
+
+  @media only screen and (max-width: $bp-medium) {
+    flex: 0 0 100%;
+
+    justify-content: center;
+  }
+
+}
+
+.main-section {
+  display: flex;
+  flex: 1 1 82%;
+  flex-direction: column;
+
+  .toolbar {
+    color: #fff;
+    padding: 5px 10px;
+    height: 8rem;
+
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: #cccccc 1px solid;
+    margin-bottom: 10px;
+
+    .icon {
+      justify-items: flex-start;
+    }
+
+    .btn {
+      background-color: #6c757d;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-family: "Josefin Sans", sans-serif;
+      font-size: 1.5rem;
+      padding: 1rem 3rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn:hover {
+      background-color: #516cb2;
+    }
+
+    button.active {
+      background-color: #28a745;
+    }
+
+    .doc-select {
+      flex: 0 1 50%;
+
+      display: flex;
+      flex-direction: column;
+
+      label {
+        font-size: 1.5rem;
+        color: #333333;
+      }
+    }
+
+    .doc-select select {
+      //appearance: none;
+      width: 100%;
+      font-size: 1.5rem;
+      padding: 0.5rem 0rem;
+      background-color: #fff;
+      border: 1px solid #caced1;
+      border-radius: 0.25rem;
+      color: #000;
+      cursor: pointer;
+    }
+  }
+
+  .ubl-panel {
+    display: flex;
+    flex-direction: row;
+
+    @media only screen and (max-width: $bp-medium) {
+      flex-direction: column;
+    }
+
+  }
+
+  .ubl-form {
+    flex: 0 1 70%;
+    box-shadow: var(--shadow-dark);
+  }
+
+  .json-result {
+    flex: 0 1 30%;
+    padding: 1rem 1rem 1rem 3rem;
+
+    fieldset {
+      border: 1px solid #ddd;
+      padding: 12px;
+    }
+
+    legend {
+      font-size: 18px;
+      padding: 0 10px;
+    }
+
+    .spinner-container{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #71fdfd;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+
+      }
+
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    }
+  }
+}
+
+.footer{
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 7rem;
+  background-color: #516cb2;
+  border-top: var(--line);
+  color: #fff;
+  font-size: 2rem;
+}
+
+

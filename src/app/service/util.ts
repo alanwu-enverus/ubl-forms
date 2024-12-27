@@ -22,6 +22,9 @@ export function getRefName(ref: string) {
 }
 
 export function removeEmpty(object: any) {
+  if(object === null || object === undefined) {
+    return {}
+  }
   Object
     .entries(object)
     .forEach(([k, v]) => {
@@ -84,7 +87,7 @@ export function camelCaseToTitle(text: string) {
 }
 
 export async function getSampleDocument(name: string): Promise<any> {
-  const fileName = `UBL-${name}-Example.json`;
+  const fileName = `${name}.json`;
   let data = await import(`../../../public/ubl-sample/${fileName}`)
   return data[name];
 }
@@ -218,4 +221,107 @@ export function closeComponents(loadedComponents: LoadedComponent[], vcr:ViewCon
       });
     }
   }
+}
+
+export function clearFormGroup(formGroup: FormGroup) {
+  while(Object.keys(formGroup.controls).length){
+    const toRemove = Object.keys(formGroup.controls)[0];
+    formGroup.removeControl(toRemove)
+  }
+}
+
+export function getAllDocTypes() {
+  return [
+    "TenderReceipt",
+    "ExceptionNotification",
+    "CatalogueItemSpecificationUpdate",
+    "FreightInvoice",
+    "DespatchAdvice",
+    "TenderContract",
+    "SelfBilledCreditNote",
+    "PackingList",
+    "Enquiry",
+    "FulfilmentCancellation",
+    "CertificateOfOrigin",
+    "StockAvailabilityReport",
+    "BillOfLading",
+    "DigitalCapability",
+    "TransportExecutionPlanRequest",
+    "TransportProgressStatusRequest",
+    "TenderStatusRequest",
+    "UnawardedNotification",
+    "PriorInformationNotice",
+    "ReceiptAdvice",
+    "UnsubscribeFromProcedureResponse",
+    "ContractAwardNotice",
+    "ExpressionOfInterestResponse",
+    "Tender",
+    "Reminder",
+    "ForwardingInstructions",
+    "ItemInformationRequest",
+    "TenderWithdrawal",
+    "TenderStatus",
+    "TransportProgressStatus",
+    "Invoice",
+    "Order",
+    "UnsubscribeFromProcedureRequest",
+    "GoodsItemPassport",
+    "ContractNotice",
+    "Catalogue",
+    "DocumentStatus",
+    "TransportExecutionPlan",
+    "OrderChange",
+    "Manifest",
+    "ProductActivity",
+    "QualificationApplicationResponse",
+    "Forecast",
+    "DigitalAgreement",
+    "AwardedNotification",
+    "ProofOfReexportationReminder",
+    "TendererQualification",
+    "CataloguePricingUpdate",
+    "Waybill",
+    "InventoryReport",
+    "ApplicationResponse",
+    "RetailEvent",
+    "RemittanceAdvice",
+    "SelfBilledInvoice",
+    "ProofOfReexportation",
+    "ProofOfReexportationRequest",
+    "GuaranteeCertificate",
+    "OrderResponseSimple",
+    "ExportCustomsDeclaration",
+    "WeightStatement",
+    "UtilityStatement",
+    "TradeItemLocationProfile",
+    "ExceptionCriteria",
+    "OrderResponse",
+    "DocumentStatusRequest",
+    "CatalogueRequest",
+    "TransportationStatusRequest",
+    "EnquiryResponse",
+    "Statement",
+    "TendererQualificationResponse",
+    "ImportCustomsDeclaration",
+    "TransportServiceDescriptionRequest",
+    "ForecastRevision",
+    "TransitCustomsDeclaration",
+    "InstructionForReturns",
+    "CommonTransportationReport",
+    "DebitNote",
+    "GoodsItemItinerary",
+    "AttachedDocument",
+    "QualificationApplicationRequest",
+    "CallForTenders",
+    "TransportationStatus",
+    "Quotation",
+    "RequestForQuotation",
+    "ExpressionOfInterestRequest",
+    "CatalogueDeletion",
+    "BusinessCard",
+    "GoodsCertificate",
+    "CreditNote",
+    "TransportServiceDescription",
+    "OrderCancellation"
+  ];
 }

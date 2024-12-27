@@ -1,7 +1,26 @@
-import {Component, inject, input, Input, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
+import {
+  Component,
+  inject,
+  input,
+  Input,
+  OnChanges,
+  OnInit,
+  output,
+  signal,
+  SimpleChanges,
+  viewChild,
+  ViewContainerRef
+} from '@angular/core';
 import {BasicComponent} from "./basic.component";
 import {FormGroup, ReactiveFormsModule} from "@angular/forms";
-import {camelCaseToTitle, closeComponents, isEmpty, removeEmpty, setupAComponent} from "../../service/util";
+import {
+  camelCaseToTitle,
+  clearFormGroup,
+  closeComponents,
+  isEmpty,
+  removeEmpty,
+  setupAComponent
+} from "../../service/util";
 import {DocumentService} from "../../service/document.service";
 import {AggregateService} from "../../service/aggregate.service";
 import {BasicService} from "../../service/basic.service";
@@ -53,14 +72,9 @@ import {ExpandComponent} from "../helper/expand.component";
 
     @if (isLoading()) {
       <div class="spinner-container">
-        <div class="loader"> </div>
+        <div class="loader"></div>
       </div>
     }
-    <div class="note">
-      Please note: <ubl-three-dots></ubl-three-dots> is to expand the section. <ubl-expand></ubl-expand> is to load a component <ubl-up></ubl-up> is to collapse the section. <ubl-add></ubl-add> is to add a new item. <ubl-remove></ubl-remove> is to remove an item.
-    </div>
-
-    <pre>{{ removeEmpty(formGroup.value) | json }}</pre>
   `,
   styles: `
     .document-container {
@@ -95,48 +109,44 @@ import {ExpandComponent} from "../helper/expand.component";
       padding-right: 0.5rem;
     }
 
-    .note{
-      padding: 1rem;
-      font-size: 1.8rem;
-      font-weight: 100;
-      text-align: center;
-    }
-
     // Loader
     .spinner-container {
       display: flex;
       justify-content: center;
-      align-items: center;
       text-align: center;
       min-height: 100vh;
     }
 
     .loader {
-      border: 16px solid #f3f3f3;
+      width: 48px;
+      height: 48px;
+      border: 5px solid #71fdfd;
+      border-bottom-color: transparent;
       border-radius: 50%;
-      border-top: 16px solid #3498db;
-      width: 120px;
-      height: 120px;
-      -webkit-animation: spin 2s linear infinite; /* Safari */
-      animation: spin 2s linear infinite;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
     }
 
-    /* Safari */
-    @-webkit-keyframes spin {
-      0% { -webkit-transform: rotate(0deg); }
-      100% { -webkit-transform: rotate(360deg); }
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
   `
 })
 
-export class DocumentComponent implements OnInit {
-  @Input() model?: any;
+export class DocumentComponent implements OnInit, OnChanges {
+
+
+  @Input() model?: object;
   @Input() docTypeName: string;
+
+  onDataChange = output<object>();
+
 
   isExpanded = signal(false);
   isLoading = signal(false);
@@ -162,13 +172,32 @@ export class DocumentComponent implements OnInit {
 
     this.docSchema = await this.docService.getDocumentRequiredSchema(this.docTypeName);
     this.vcr()?.clear()
+    clearFormGroup(this.formGroup)
 
     this.required = this.docSchema.required || [];
 
     await this.populateModel();
     this.initRequired();
 
+    this.formGroup.valueChanges.subscribe((value) => {
+        this.onDataChange.emit(this.formGroup.value);
+    })
     this.isLoading.set(false);
+
+
+    // this.formGroup.valueChanges.subscribe((value) => {
+    //   this.onDataChange.emit(this.formGroup.value);
+    // })
+  }
+
+  async ngOnChanges(changes: SimpleChanges): Promise<void> {
+    if(changes.docTypeName && changes.docTypeName.currentValue !== changes.docTypeName.previousValue) {
+      await this.setupDocumentComponent();
+    }
+
+    if(changes.model && changes.model.currentValue !== changes.model.previousValue) {
+      await this.setupDocumentComponent();
+    }
   }
 
   onClose() {
@@ -193,6 +222,22 @@ export class DocumentComponent implements OnInit {
         }
       })
     }
+  }
+
+  private async setupDocumentComponent() {
+    this.isLoading.set(true);
+
+    this.docSchema = await this.docService.getDocumentRequiredSchema(this.docTypeName);
+    this.vcr()?.clear()
+    clearFormGroup(this.formGroup)
+
+    this.required = this.docSchema.required || [];
+
+    await this.populateModel();
+    this.initRequired();
+
+
+    this.isLoading.set(false);
   }
 
   private initRequired() {

@@ -1,45 +1,117 @@
-import {Component, OnInit} from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-// import {GroupComponent} from "./test/group.component";
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {InputComponent} from "./form/input.component";
-import {JsonPipe} from "@angular/common";
-// import {DocComponent} from "./test/doc.component";
+import {Component, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {JsonPipe, NgClass} from "@angular/common";
 import {DocumentComponent} from "./form/ubl/document.component";
 import {BasicComponent} from "./form/ubl/basic.component";
 import {AggregateComponent} from "./form/ubl/aggregate.component";
-import {getSampleDocument} from "./service/util";
+import {getAllDocTypes, getSampleDocument, isEmpty, removeEmpty} from "./service/util";
+import {ThreeDotsComponent} from "./form/helper/three.dots.component";
+import {ExpandComponent} from "./form/helper/expand.component";
+import {UpComponent} from "./form/helper/up.component";
+import {AddComponent} from "./form/helper/add.component";
+import {RemoveComponent} from "./form/helper/remove.component";
+
+
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InputComponent, ReactiveFormsModule, JsonPipe, DocumentComponent, BasicComponent, AggregateComponent],
+  imports: [ReactiveFormsModule, JsonPipe, ThreeDotsComponent, ExpandComponent, UpComponent, AddComponent, RemoveComponent, FormsModule, NgClass, DocumentComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
+  showDescription = true;
+  jsonResult: any;
+  isLoadSample = true
+  docTypes: string[] = getAllDocTypes().sort((a, b) => a.localeCompare(b));
+  isLoadingSample = signal(false);
+
+  vcr = viewChild('container', {read: ViewContainerRef});
+
+  selectedDocType = "Invoice";
   ublType = 'Invoice';
   data: any;
-  async ngOnInit(): Promise<void> {
-    this.data = await getSampleDocument("Invoice");
 
-    /* for test and debug */
-    // let doc = await getSampleDocument("Invoice");
-    // this.data = doc["AccountingSupplierParty"];
-    // this.data = new Array(doc['InvoiceLine'][0]);
-    // console.log(this.data);
+  async ngOnInit(): Promise<void> {
+    await this.getSampleData();
+
+    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
+
+    // this.ublType = "Invoice"
+    // this.jsonResult = this.data;
   }
 
 
+  create() {
+    this.isLoadSample = false;
+    this.data = {};
+    this.ublType = this.selectedDocType;
 
-  // docService = inject(DocumentService);
+    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
+    // this.jsonResult = this.data;
+  }
 
-  // errorMessages = { required: 'The name field is required' };
-  // testControl = new FormControl('MyDefaultValue', Validators.required);
+  async loadSample() {
+    this.isLoadSample = true;
+    await this.getSampleData();
 
-   // formGroup = new FormGroup({
-   //   name: new FormControl('', Validators.required),
-   //   // age: new FormControl(0, Validators.required),
-   // });
+    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
+
+    // this.ublType = this.selectedDocType;
+    // this.jsonResult = this.data;
+  }
+
+
+  async onSelectDoc(target: any) {
+    this.selectedDocType = target.value;
+    if (this.isLoadSample) {
+      await this.getSampleData();
+    } else {
+      this.data = {};
+    }
+
+    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
+
+    // this.ublType = this.selectedDocType;
+    // this.jsonResult = this.data;
+  }
+
+  onDataChange(data: any) {
+    this.jsonResult = data
+  }
+
+  protected readonly removeEmpty = removeEmpty;
+  year =  new Date().getFullYear();
+
+  onClickMenu() {
+    this.showDescription = !this.showDescription;
+  }
+
+  async getSampleData() {
+    this.isLoadingSample.set(true);
+    try {
+      this.data = await getSampleDocument(this.ublType);
+    } catch (e) {
+      this.data = {};
+    }
+
+    this.isLoadingSample.set(false);
+  }
+
+  private setupDocumentComponent(vcr?: ViewContainerRef, docTypeName?: string, model?: any) {
+    if (this.vcr()) {
+      this.vcr()?.clear()
+      let ref = this.vcr()?.createComponent(DocumentComponent);
+      ref.instance.docTypeName = docTypeName;
+      ref.instance.model = model;
+      ref.instance.onDataChange.subscribe((data) => {
+        this.onDataChange(data);
+      });
+
+      this.jsonResult = model;
+    }
+  }
 
 }

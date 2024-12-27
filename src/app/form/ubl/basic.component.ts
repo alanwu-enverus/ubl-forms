@@ -73,7 +73,7 @@ import {camelCaseToTitle} from "../../service/util";
 
         .title {
           font-size: 1.4rem;
-          font-weight: 700;
+          font-weight: 100;
         }
       }
 
