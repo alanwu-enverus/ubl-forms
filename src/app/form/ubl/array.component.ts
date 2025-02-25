@@ -18,14 +18,13 @@ import {isEmpty} from "../../service/util";
 
 
 @Component({
-  selector: 'ubl-array',
-  standalone: true,
-  imports: [
-    AddComponent,
-    NgComponentOutlet,
-    RemoveComponent
-  ],
-  template: `
+    selector: 'ubl-array',
+    imports: [
+        AddComponent,
+        NgComponentOutlet,
+        RemoveComponent
+    ],
+    template: `
     <div class="container">
       <div class="top-item">
         <div class="title"> {{ title }}</div>
@@ -47,7 +46,7 @@ import {isEmpty} from "../../service/util";
       </div>
     </div>
   `,
-  styles: `
+    styles: `
     .container {
       position: relative;
       display: block;

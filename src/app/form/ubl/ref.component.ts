@@ -8,13 +8,12 @@ import {AggregateComponent} from "./aggregate.component";
 import {isEmpty} from "../../service/util";
 
 @Component({
-  selector: 'ubl-ref',
-  standalone: true,
-  imports: [
-    ExpandComponent,
-    ReactiveFormsModule
-  ],
-  template: `
+    selector: 'ubl-ref',
+    imports: [
+        ExpandComponent,
+        ReactiveFormsModule
+    ],
+    template: `
     @if (!isExpanded()) {
       <div class="container" >
         <div class="top-item">
@@ -31,7 +30,7 @@ import {isEmpty} from "../../service/util";
       <ng-container #aggregate></ng-container>
     </ng-container>
   `,
-  styles: `
+    styles: `
   .container {
     position: relative;
     display: block;

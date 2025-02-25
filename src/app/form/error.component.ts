@@ -3,20 +3,19 @@ import {ValidationErrors} from "@angular/forms";
 import {KeyValuePipe, NgForOf} from "@angular/common";
 
 @Component({
-  selector: 'ubl-error',
-  standalone: true,
-  imports: [
-    KeyValuePipe,
-    NgForOf
-  ],
-  template: `
+    selector: 'ubl-error',
+    imports: [
+        KeyValuePipe,
+        NgForOf
+    ],
+    template: `
     <ul class="ubl-validation-errors">
       <li *ngFor="let error of errors | keyvalue">
         {{ errorMessages[error.key] }}
       </li>
     </ul>
   `,
-  styles: `
+    styles: `
     .ubl-validation-errors {
       margin: 0;
       padding-left: 16px;

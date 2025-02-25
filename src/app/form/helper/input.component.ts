@@ -13,20 +13,19 @@ import {ErrorComponent} from "../error.component";
 type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local';
 
 @Component({
-  selector: 'ubl-input',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    ErrorComponent,
-  ],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => InputComponent),
-      multi: true,
-    },
-  ],
-  template: `
+    selector: 'ubl-input',
+    imports: [
+        ReactiveFormsModule,
+        ErrorComponent,
+    ],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => InputComponent),
+            multi: true,
+        },
+    ],
+    template: `
     @if (control) {
       <div class="container">
         @if (control?.value) {
@@ -48,7 +47,7 @@ type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local
       </div>
     }
   `,
-  styles: `
+    styles: `
     .container {
       display: flex;
       width: 100%;

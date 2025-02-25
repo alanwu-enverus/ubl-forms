@@ -1,11 +1,8 @@
 import {Component, OnInit, signal, viewChild, ViewContainerRef} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {JsonPipe, NgClass} from "@angular/common";
 import {DocumentComponent} from "./form/ubl/document.component";
-import {BasicComponent} from "./form/ubl/basic.component";
-import {AggregateComponent} from "./form/ubl/aggregate.component";
-import {getAllDocTypes, getSampleDocument, isEmpty, removeEmpty} from "./service/util";
+import {getAllDocTypes, getSampleDocument, removeEmpty} from "./service/util";
 import {ThreeDotsComponent} from "./form/helper/three.dots.component";
 import {ExpandComponent} from "./form/helper/expand.component";
 import {UpComponent} from "./form/helper/up.component";
@@ -15,11 +12,10 @@ import {RemoveComponent} from "./form/helper/remove.component";
 
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [ReactiveFormsModule, JsonPipe, ThreeDotsComponent, ExpandComponent, UpComponent, AddComponent, RemoveComponent, FormsModule, NgClass, DocumentComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+    selector: 'app-root',
+    imports: [ReactiveFormsModule, JsonPipe, ThreeDotsComponent, ExpandComponent, UpComponent, AddComponent, RemoveComponent, FormsModule, NgClass],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
   showDescription = true;
@@ -35,12 +31,12 @@ export class AppComponent implements OnInit {
   data: any;
 
   async ngOnInit(): Promise<void> {
+    if(window.innerWidth < 900) {
+      this.showDescription = false;
+    }
     await this.getSampleData();
 
     this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
-
-    // this.ublType = "Invoice"
-    // this.jsonResult = this.data;
   }
 
 

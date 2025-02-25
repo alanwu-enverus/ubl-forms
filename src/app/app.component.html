@@ -51,7 +51,7 @@
           Feedback
         </div>
 
-        <div class="feedback">I created the UBL form in my spare time with the hope that it can serve a purpose in the industry. Before releasing it as an open-source project, I would greatly appreciate any feedback, suggestions, or constructive criticism to improve it further. </div>
+        <div class="feedback">I created the UBL form in my spare time with the hope of making it beneficial for the industry. Before releasing it as an open-source project, I would greatly appreciate any feedback, suggestions, or constructive criticism to improve it further. </div>
         <div style="margin-top: 1rem">Your input is invaluable—thank you!
         </div>
         <div style="margin-top: 0.5rem; text-align: right"><a href= "mailto:info@effisync.net">info&#64;effisync.net</a></div>
@@ -88,8 +88,8 @@
 
       <div class="ubl-panel">
 
-        <section class="ubl-form">
-          <!--                    <ubl-document [docTypeName]="ublType" [model]="data" (onDataChange)="onDataChange($event)"></ubl-document>-->
+        <section [ngClass]="showDescription ? 'ubl-form-shadow' : 'ubl-form'">
+          <!--<ubl-document [docTypeName]="ublType" [model]="data" (onDataChange)="onDataChange($event)"></ubl-document>  -->
           <ng-container #container></ng-container>
         </section>
 

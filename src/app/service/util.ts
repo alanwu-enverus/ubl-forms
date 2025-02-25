@@ -5,7 +5,7 @@ import Aggregate = Ubl.Aggregate;
 import NextRef = Ubl.NextRef;
 import {ArrayComponent} from "../form/ubl/array.component";
 import {RefComponent} from "../form/ubl/ref.component";
-import {Signal, ViewContainerRef} from "@angular/core";
+import {ViewContainerRef} from "@angular/core";
 import {FormGroup} from "@angular/forms";
 import {AggregateComponent} from "../form/ubl/aggregate.component";
 
@@ -87,8 +87,7 @@ export function camelCaseToTitle(text: string) {
 }
 
 export async function getSampleDocument(name: string): Promise<any> {
-  const fileName = `${name}.json`;
-  let data = await import(`../../../public/ubl-sample/${fileName}`)
+  let data = await import(`../../../public/${name}.json`)
   return data[name];
 }
 

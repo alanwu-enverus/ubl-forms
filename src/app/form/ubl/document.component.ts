@@ -1,7 +1,6 @@
 import {
   Component,
   inject,
-  input,
   Input,
   OnChanges,
   OnInit,
@@ -11,7 +10,6 @@ import {
   viewChild,
   ViewContainerRef
 } from '@angular/core';
-import {BasicComponent} from "./basic.component";
 import {FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {
   camelCaseToTitle,
@@ -22,32 +20,19 @@ import {
   setupAComponent
 } from "../../service/util";
 import {DocumentService} from "../../service/document.service";
-import {AggregateService} from "../../service/aggregate.service";
-import {BasicService} from "../../service/basic.service";
 import Document = Ubl.Document;
-import {JsonPipe} from "@angular/common";
 import {LoadedComponent, Ubl} from "../../model/ubl.model";
 import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {UpComponent} from "../helper/up.component";
-import {AddComponent} from "../helper/add.component";
-import {RemoveComponent} from "../helper/remove.component";
-import {ExpandComponent} from "../helper/expand.component";
-
 
 @Component({
-  selector: 'ubl-document',
-  standalone: true,
-  imports: [
-    BasicComponent,
-    ReactiveFormsModule,
-    JsonPipe,
-    ThreeDotsComponent,
-    UpComponent,
-    AddComponent,
-    RemoveComponent,
-    ExpandComponent
-  ],
-  template: `
+    selector: 'ubl-document',
+    imports: [
+        ReactiveFormsModule,
+        ThreeDotsComponent,
+        UpComponent,
+    ],
+    template: `
     <form [formGroup]="formGroup">
       <div class="document-container">
         <div class="title">{{ convertTitle(docSchema?.title) }}</div>
@@ -76,7 +61,7 @@ import {ExpandComponent} from "../helper/expand.component";
       </div>
     }
   `,
-  styles: `
+    styles: `
     .document-container {
       padding: 0px 1rem;
       display: flex;

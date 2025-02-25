@@ -1,11 +1,11 @@
 // import * as fs from 'fs';
 // import * as path from 'path';
-import * as cct from '../../../public/ubl/common/BDNDR-CCTS_CCT_SchemaModule-1.1.json';
-import * as cbc from '../../../public/ubl/common/UBL-CommonBasicComponents-2.3.json';
-import * as cac from '../../../public/ubl/common/UBL-CommonAggregateComponents-2.3.json';
-import * as udt from '../../../public/ubl/common/BDNDR-UnqualifiedDataTypes-1.1.json';
-import * as qdt from '../../../public/ubl/common/UBL-QualifiedDataTypes-2.3.json';
-import * as cec from '../../../public/ubl/common/UBL-CommonExtensionComponents-2.3.json';
+import * as cct from '../../../public/BDNDR-CCTS_CCT_SchemaModule-1.1.json';
+import * as cbc from '../../../public/UBL-CommonBasicComponents-2.3.json';
+import * as cac from '../../../public/UBL-CommonAggregateComponents-2.3.json';
+import * as udt from '../../../public/BDNDR-UnqualifiedDataTypes-1.1.json';
+import * as qdt from '../../../public/UBL-QualifiedDataTypes-2.3.json';
+import * as cec from '../../../public/UBL-CommonExtensionComponents-2.3.json';
 import {BasicComponent} from "../form/ubl/basic.component";
 import {RefComponent} from "../form/ubl/ref.component";
 import {ViewRef} from "@angular/core";

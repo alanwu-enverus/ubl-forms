@@ -150,6 +150,11 @@ $bp-smallest: 31.25em; // 500px
       padding: 1rem 3rem;
       cursor: pointer;
       transition: all .2s;
+
+      @media only screen and (max-width: $bp-medium) {
+       font-size: 1rem;
+        padding: 0.5rem 1rem;
+      }
     }
 
     .btn:hover {
@@ -169,6 +174,10 @@ $bp-smallest: 31.25em; // 500px
       label {
         font-size: 1.5rem;
         color: #333333;
+
+        @media only screen and (max-width: $bp-medium) {
+          font-size: 1rem;
+        }
       }
     }
 
@@ -196,6 +205,10 @@ $bp-smallest: 31.25em; // 500px
   }
 
   .ubl-form {
+    flex: 0 1 70%;
+  }
+
+  .ubl-form-shadow {
     flex: 0 1 70%;
     box-shadow: var(--shadow-dark);
   }

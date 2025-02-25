@@ -1,10 +1,9 @@
 import {Component, output} from '@angular/core';
 
 @Component({
-  selector: 'ubl-three-dots',
-  standalone: true,
-  imports: [],
-  template: `
+    selector: 'ubl-three-dots',
+    imports: [],
+    template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="20"
@@ -19,7 +18,7 @@ import {Component, output} from '@angular/core';
       />
     </svg>
   `,
-  styles: ``
+    styles: ``
 })
 export class ThreeDotsComponent {
   openRequest = output()

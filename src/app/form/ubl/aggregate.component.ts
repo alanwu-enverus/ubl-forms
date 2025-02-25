@@ -20,14 +20,13 @@ import {ThreeDotsComponent} from "../helper/three.dots.component";
 import {ArrayComponent} from "./array.component";
 
 @Component({
-  selector: 'ubl-aggregate',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    ThreeDotsComponent,
-    UpComponent
-  ],
-  template: `
+    selector: 'ubl-aggregate',
+    imports: [
+        ReactiveFormsModule,
+        ThreeDotsComponent,
+        UpComponent
+    ],
+    template: `
     <ng-container [formGroup]="formGroup">
       <div class="container">
         <div class="top-item">
@@ -47,7 +46,7 @@ import {ArrayComponent} from "./array.component";
       </div>
     </ng-container>
   `,
-  styles: `
+    styles: `
     // Container
     .container {
       position: relative;

@@ -32,7 +32,7 @@ export class AggregateService {
       b. if type is object-or-array, and it is aggregate, go to the next level then return and mark as aggregate, but stop for type is not object-or-array those need click-expand
       c. if type is undefined, go to the next level and repeat a and b. from the sample data, it seems that the type is undefined can be skipped the key, and directly go to the ref
   */
-  isCacRef = (ref: string) => ref.startsWith(`../common/UBL-CommonAggregateComponents-2.3.json`);
+  isCacRef = (ref: string) => ref.includes(`UBL-CommonAggregateComponents-2.3.json`);
   isRef = (ref: string) => ref.startsWith(`#/definitions/`);
 
   basicService = inject(BasicService);

@@ -1,10 +1,9 @@
 import {Component, output} from '@angular/core';
 
 @Component({
-  selector: 'ubl-expand',
-  standalone: true,
-  imports: [],
-  template: `
+    selector: 'ubl-expand',
+    imports: [],
+    template: `
     <svg xmlns="http://www.w3.org/2000/svg"
          fill="none"
          height="17"
@@ -16,7 +15,7 @@ import {Component, output} from '@angular/core';
             fill="blue" fill-rule="evenodd"/>
     </svg>
   `,
-  styles: `
+    styles: `
     svg:hover {
       cursor: pointer;
     }

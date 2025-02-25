@@ -10,16 +10,15 @@ import {NgClass} from "@angular/common";
 import {camelCaseToTitle} from "../../service/util";
 
 @Component({
-  selector: 'ubl-basic',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    UpComponent,
-    InputComponent,
-    ThreeDotsComponent,
-    NgClass
-  ],
-  template: `
+    selector: 'ubl-basic',
+    imports: [
+        ReactiveFormsModule,
+        UpComponent,
+        InputComponent,
+        ThreeDotsComponent,
+        NgClass
+    ],
+    template: `
     <ng-container [formGroup]="formGroup">
       <div class="basic-container">
         <div [ngClass]="documentLevel ? 'doc-level-top-item': 'top-item'">
@@ -58,7 +57,7 @@ import {camelCaseToTitle} from "../../service/util";
       </div>
     </ng-container>
   `,
-  styles: `
+    styles: `
     .basic-container {
       display: grid;
       grid-template-columns: max(1rem) 1fr;

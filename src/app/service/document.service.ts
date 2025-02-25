@@ -138,8 +138,8 @@ export class DocumentService {
       return this.documentSchemaCache[name];
     }
 
-    const fileName = `UBL-${name}-2.3.json`;
-    const schema = await import(`../../../public/ubl/maindoc/${fileName}`)
+    // const fileName = `UBL-${name}-2.3.json`;
+    const schema = await import(`../../../public/UBL-${name}-2.3.json`)
 
     if (schema) {
       this.documentSchemaCache[name] = schema;
