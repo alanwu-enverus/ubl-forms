@@ -25,14 +25,13 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-builders/jest": "^18.0.0",
     "@angular/build": "^19.0.6",
     "@angular/cli": "^19.0.6",
     "@angular/compiler-cli": "^19.0.5",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.13",
     "jest": "^29.7.0",
-    "jest-preset-angular": "^14.2.4",
+    "jest-preset-angular": "^14.6.2",
     "typescript": "~5.5.2"
   }
 }
