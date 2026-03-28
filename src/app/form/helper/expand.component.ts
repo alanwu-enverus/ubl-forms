@@ -1,30 +1,26 @@
 import {Component, output} from '@angular/core';
 
 @Component({
-    selector: 'ubl-expand',
-    imports: [],
-    template: `
-    <svg xmlns="http://www.w3.org/2000/svg"
-         fill="none"
-         height="17"
-         viewBox="0 0 15 15"
-         width="17"
-         (click)="onClick()">
-      <path clip-rule="evenodd"
-            d="M1 1H5V2H2.70711L5.85355 5.14645L5.14645 5.85355L2 2.70711V5H1V1ZM12.2929 2H10V1H14V5H13V2.70711L9.85355 5.85355L9.14645 5.14645L12.2929 2ZM5.85355 9.85355L2.70711 13H5V14H1V10H2V12.2929L5.14645 9.14645L5.85355 9.85355ZM9.85355 9.14645L13 12.2929L13 10L14 10L14 14H10V13H12.2929L9.14645 9.85355L9.85355 9.14645Z"
-            fill="blue" fill-rule="evenodd"/>
+  selector: 'ubl-expand',
+  imports: [],
+  template: `
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         class="icon" (click)="onClick()">
+      <polyline points="9 18 15 12 9 6"/>
     </svg>
   `,
-    styles: `
-    svg:hover {
+  styles: `
+    .icon {
+      color: #516cb2;
       cursor: pointer;
+      transition: color 0.15s, transform 0.15s;
     }
+    .icon:hover { color: #2e3d78; transform: translateX(2px); }
   `
 })
 export class ExpandComponent {
-  expandRequest = output()
-
-  onClick() {
-    this.expandRequest.emit();
-  }
+  expandRequest = output();
+  onClick() { this.expandRequest.emit(); }
 }

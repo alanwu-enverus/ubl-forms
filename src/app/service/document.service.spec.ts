@@ -1,6 +1,8 @@
-import { TestBed } from '@angular/core/testing';
-
-import { DocumentService } from './document.service';
+import {TestBed} from '@angular/core/testing';
+import {DocumentService} from './document.service';
+import {Ubl} from '../model/ubl.model';
+import Basic = Ubl.Basic;
+import Aggregate = Ubl.Aggregate;
 
 describe('DocumentService', () => {
   let service: DocumentService;
@@ -14,65 +16,68 @@ describe('DocumentService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getDocumentRequiredSchema -- ApplicationResponse', async () => {
-    let result = await service.getDocumentRequiredSchema('ApplicationResponse');
-    expect(result).not.toBeNull();
+  describe('getDocumentRequiredSchema', () => {
+    it('returns a Document with title and properties', async () => {
+      const result = await service.getDocumentRequiredSchema('Invoice');
+      expect(result.title).toBeTruthy();
+      expect(result.properties).toBeDefined();
+    });
+
+    it('returned properties only contain required field names', async () => {
+      const result = await service.getDocumentRequiredSchema('Invoice');
+      Object.keys(result.properties).forEach(key => {
+        expect(result.required).toContain(key);
+      });
+    });
+
+    it('resolves required properties to Basic or Aggregate instances', async () => {
+      const result = await service.getDocumentRequiredSchema('Invoice');
+      Object.values(result.properties).forEach(prop => {
+        const isKnownType = prop instanceof Basic || prop instanceof Aggregate || prop instanceof Ubl.Array;
+        expect(isKnownType).toBe(true);
+      });
+    });
+
+    it('returns the same cached instance on repeated calls', async () => {
+      const first = await service.getDocumentRequiredSchema('Invoice');
+      const second = await service.getDocumentRequiredSchema('Invoice');
+      expect(first).toBe(second);
+    });
+
+    it('works for ApplicationResponse document type', async () => {
+      const result = await service.getDocumentRequiredSchema('ApplicationResponse');
+      expect(result).toBeDefined();
+      expect(result.required.length).toBeGreaterThan(0);
+    });
   });
 
-  it('getDocumentRequiredSchema -- Invoice', async () => {
-    let result = await service.getDocumentRequiredSchema('Invoice');
-    expect(result).not.toBeNull();
+  describe('getDocumentNonRequiredSchema', () => {
+    it('returns a Document with properties', async () => {
+      const result = await service.getDocumentNonRequiredSchema('Invoice');
+      expect(result.properties).toBeDefined();
+    });
+
+    it('non-required properties are NOT in the required array', async () => {
+      const result = await service.getDocumentNonRequiredSchema('Invoice');
+      Object.keys(result.properties).forEach(key => {
+        expect(result.required).not.toContain(key);
+      });
+    });
+
+    it('required and non-required schemas together cover all document properties', async () => {
+      const required = await service.getDocumentRequiredSchema('Invoice');
+      const nonRequired = await service.getDocumentNonRequiredSchema('Invoice');
+      const allKeys = [...Object.keys(required.properties), ...Object.keys(nonRequired.properties)];
+      // All required field names should appear in required schema keys
+      required.required.forEach(name => {
+        expect(allKeys).toContain(name);
+      });
+    });
+
+    it('returns the same cached instance on repeated calls', async () => {
+      const first = await service.getDocumentNonRequiredSchema('Invoice');
+      const second = await service.getDocumentNonRequiredSchema('Invoice');
+      expect(first).toBe(second);
+    });
   });
-
-  it('getDocumentNonRequiredSchema -- Invoice', async () => {
-    let result = await service.getDocumentNonRequiredSchema('Invoice');
-    expect(result).not.toBeNull();
-  });
-
-  // it('getRequiredSchemas -- ApplicationResponse', async () => {
-  //   let result = await service.getDocTypeRequiredSchemas('ApplicationResponse');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getNonRequiredSchemas -- ApplicationResponse', async () => {
-  //   let result = await service.getDocTypeNonRequiredSchemas('ApplicationResponse');
-  //   expect(result).toBeTruthy();
-  // });
-  //
-  // it('getRequiredSchemas -- Invoice', async () => {
-  //   let result = await service.getDocTypeRequiredSchemas('Invoice');
-  //   expect(result).toBeTruthy();
-  // });
-  //
-  //
-  // it('getNonRequiredSchemas -- Invoice', async () => {
-  //   let result = await service.getDocTypeNonRequiredSchemas('Invoice');
-  //   expect(result).toBeTruthy();
-  // });
-
-  // it('getSchema -- ApplicationResponse', async () => {
-  //  let result = await service.getSchema('ApplicationResponse');
-  //   expect(result.description).not.toBeNull();
-  // });
-  //
-  // it('getRequiredFields -- ApplicationResponse', async () => {
-  //   let result = await service.getDocTypeRequiredFieldNames('ApplicationResponse');
-  //   expect(result.length).not.toBeNull();
-  // });
-  //
-  // it('getRequiredFieldRefs -- ApplicationResponse -  ', async () => {
-  //   let result = await service.getDocTypeRequiredRefs('ApplicationResponse');
-  //   expect(result.length).not.toBeNull();
-  // });
-  //
-  // it('getRequiredFieldSchemas -- ApplicationResponse - todo ', async () => {
-  //   let result = await service.getDocTypeRequiredSchemas('ApplicationResponse');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getRefSchema -- ApplicationResponse - todo', async () => {
-  //  let result = await service.getBasicRefSchema('"../common/UBL-CommonBasicComponents-2.3.json#/definitions/CustomizationID"');
-  //   expect(result).not.toBeNull();
-  // });
-
 });

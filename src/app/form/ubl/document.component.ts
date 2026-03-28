@@ -164,15 +164,10 @@ export class DocumentComponent implements OnInit, OnChanges {
     await this.populateModel();
     this.initRequired();
 
-    this.formGroup.valueChanges.subscribe((value) => {
-        this.onDataChange.emit(this.formGroup.value);
-    })
+    this.formGroup.valueChanges.subscribe(() => {
+      this.onDataChange.emit(this.formGroup.value);
+    });
     this.isLoading.set(false);
-
-
-    // this.formGroup.valueChanges.subscribe((value) => {
-    //   this.onDataChange.emit(this.formGroup.value);
-    // })
   }
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {

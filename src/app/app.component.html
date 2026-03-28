@@ -1,65 +1,72 @@
 <div class="container">
   <header class="header">
     <div class="title">Universal Business Language Form</div>
-    <div class="sub-title">Easily Create, Edit, and View all UBL documents</div>
+    <div class="sub-title">Create, edit, and view all UBL documents</div>
   </header>
 
   <div class="content">
+
+    <!-- ── Side panel: usage guide (hidden on mobile via toolbar menu toggle) ── -->
     @if (showDescription) {
       <section class="description">
-        <div class="card">
-          Demonstration
-        </div>
 
-          <div>This web page showcases the foundational structure and usability of UBL forms, providing intuitive tools
-            for working with all UBL document types.
-          </div>
+        <!-- How to use -->
+        <div class="card">How to use</div>
         <article>
           <p>
-            <span class="high-light">Select a Document Type:</span>
-            Choose a UBL document type (default is Invoice).</p>
-          <p><span class="high-light">Create Button:</span> Open an empty form with required fields for the selected UBL
-            document.</p>
-          <p><span class="high-light">Load Sample Button:</span> Open a sample document and populate the form</p>
-
-          <p class="high-light">Icon Guide</p>
-          <ul class="none">
-            <li>
-              <ubl-three-dots></ubl-three-dots>
-              expand the section.
-            </li>
-            <li>
-              <ubl-expand></ubl-expand>
-              load a component
-            </li>
-            <li>
-              <ubl-up></ubl-up>
-              collapse the section.
-            </li>
-            <li>
-              <ubl-add></ubl-add>
-              add a new item.
-            </li>
-            <li>
-              <ubl-remove></ubl-remove>
-              remove an item.
-            </li>
-          </ul>
+            <span class="high-light">1. Select a document type</span><br>
+            Choose any of the 80+ UBL document types from the dropdown.
+            The form defaults to <em>Invoice</em>.
+          </p>
+          <p>
+            <span class="high-light">2. Create or load</span><br>
+            <strong>Create</strong> — opens an empty form showing only required fields.<br>
+            <strong>Load Sample</strong> — pre-populates the form with a real UBL sample document.
+          </p>
+          <p>
+            <span class="high-light">3. Fill in fields</span><br>
+            Required fields appear immediately. Use the icons below to reveal optional
+            fields, load nested references, or add/remove array items.
+          </p>
+          <p>
+            <span class="high-light">4. Export JSON</span><br>
+            The JSON panel on the right updates in real time and shows the cleaned output
+            (empty fields are omitted automatically).
+          </p>
         </article>
 
-        <div class="card">
-          Feedback
-        </div>
-
-        <div class="feedback">I created the UBL form in my spare time with the hope of making it beneficial for the industry. Before releasing it as an open-source project, I would greatly appreciate any feedback, suggestions, or constructive criticism to improve it further. </div>
-        <div style="margin-top: 1rem">Your input is invaluable—thank you!
-        </div>
-        <div style="margin-top: 0.5rem; text-align: right"><a href= "mailto:info@effisync.net">info&#64;effisync.net</a></div>
+        <!-- Icon guide -->
+        <div class="card">Icon guide</div>
+        <ul class="none">
+          <li>
+            <ubl-three-dots></ubl-three-dots>
+            <span>Expand optional fields for this section</span>
+          </li>
+          <li>
+            <ubl-up></ubl-up>
+            <span>Collapse the section</span>
+          </li>
+          <li>
+            <ubl-expand></ubl-expand>
+            <span>Load a nested reference (lazy-loaded)</span>
+          </li>
+          <li>
+            <ubl-add></ubl-add>
+            <span>Add a new item to the list</span>
+          </li>
+          <li>
+            <ubl-remove></ubl-remove>
+            <span>Remove this item from the list</span>
+          </li>
+        </ul>
 
       </section>
-
     }
+
+    <!-- ── Main area: toolbar + form + JSON output ── -->
     <section class="main-section">
+
+      <!-- Toolbar: menu toggle, Create/Load buttons, document type selector -->
       <div class="toolbar">
         <div class="icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="blue" class="bi bi-list"
@@ -73,26 +80,26 @@
         </div>
         <div class="doc-select">
           <label for="doc-select">Select a UBL document type:</label>
-
           <select name="docType" (change)="onSelectDoc($event.target)" [(ngModel)]="ublType" id="doc-select">
             @for (docType of docTypes; track docType) {
               <option value="{{ docType }}">{{ docType }}</option>
             }
           </select>
         </div>
-
         <div>
           <button class="btn" (click)="loadSample()" [ngClass]="{active: isLoadSample}">Load Sample</button>
         </div>
       </div>
 
+      <!-- Two-column panel: UBL form (left 70%) + JSON output (right 30%) -->
       <div class="ubl-panel">
 
+        <!-- Dynamic form container — DocumentComponent is injected here at runtime -->
         <section [ngClass]="showDescription ? 'ubl-form-shadow' : 'ubl-form'">
-          <!--<ubl-document [docTypeName]="ublType" [model]="data" (onDataChange)="onDataChange($event)"></ubl-document>  -->
           <ng-container #container></ng-container>
         </section>
 
+        <!-- Live JSON output — empty values are stripped before display -->
         <aside class="json-result">
           <fieldset>
             <legend>JSON Result</legend>
@@ -102,20 +109,16 @@
               </div>
             }
             <pre>{{ removeEmpty(jsonResult) | json }}</pre>
-
           </fieldset>
         </aside>
+
       </div>
     </section>
+
   </div>
 
-
   <footer class="footer">
-    <div> UBL Form &#64; {{ year }} </div>
+    <div>UBL Form &#64; {{ year }}</div>
   </footer>
 
 </div>
-
-
-
-

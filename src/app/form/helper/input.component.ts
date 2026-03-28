@@ -8,7 +8,7 @@ import {
   Validators
 } from "@angular/forms";
 import {distinctUntilChanged, startWith, Subject, takeUntil, tap} from "rxjs";
-import {ErrorComponent} from "../error.component";
+import {ErrorComponent} from "./error.component";
 
 type InputType = 'text' | 'number' | 'email' | 'date' | 'time' | 'datetime-local';
 

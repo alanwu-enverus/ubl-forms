@@ -1,34 +1,73 @@
-# Dynaform
+<h1 align="center">
+  <img src="icon.svg" width="60" alt="UBL Forms icon" valign="middle"/>
+  &nbsp;UBL Forms
+</h1>
 
-feature:
-1. basic form component (element)-> generate input (text, email...), select, radio, checkbox, textarea, file
-2. group form component (object)-> generate form group to host object
-3. array form component (list)-> generate form array to host array element or object
+[![test](https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml/badge.svg)](https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml)
 
-design:
-1. input: json schema or json data (use tools to generate json schema from json data)
-2. option: ui schema (should be json and css for customizing ui? and select options pre-setup?) 
-3. option: typeahead service?  lisent to form change event and call service to get data for typeahead if needed
+A dynamic form generator for [Universal Business Language (UBL) 2.3](https://docs.oasis-open.org/ubl/os-UBL-2.3/UBL-2.3.html) documents, built with Angular 19.
 
+## What it does
 
-plan:
-1. test codes 
-   a. generate basic form from json schema 
-   b. generate group form from level 1 json schema
-   c. generate array form from level 1 json schema
-2. create service to get ubl json schema
-   a. only get required fields json schema
-   b. get other fields json schema on demand
+Reads UBL JSON schemas and renders interactive forms on the fly — no hardcoded fields. Supports all 80+ UBL document types (Invoice, Order, CreditNote, etc.).
 
+- Required fields load immediately; optional fields expand on demand
+- Load a sample document to pre-populate the form
+- Outputs clean JSON as you type
 
-note:
-1. set "resolveJsonModule": true, tsconfig.json  to import json file in typescript
+## Getting started
 
-ref: https://www.youtube.com/watch?v=ncbftt3NWVo
+```bash
+npm install
+npm start        # http://localhost:4200
+```
 
+## Commands
 
-Dec 8, 2024
-todo:
-1. move the 'expand' to 'up' position, because after expanded, it will not be 'expand' anymore. then 'up' or 'down' will show
-2. some nested aggregate with empty value can not be collapsed, need to fix it
-3. in output json, some empty value can not be removed. need to fix it
+| Command | Description |
+|---|---|
+| `npm start` | Start dev server |
+| `npm run build` | Production build |
+| `npm test` | Run unit tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
+
+## How it works
+
+```
+Select document type
+  → DocumentComponent loads required schema fields
+  → Expand (···) to reveal optional fields
+  → Expand (↗) to load a nested reference
+  → JSON output updates in real time
+```
+
+**Services**
+- `DocumentService` — loads the top-level document schema
+- `AggregateService` — resolves nested object schemas (CAC)
+- `BasicService` — resolves primitive field schemas (CBC, QDT, UDT, CCT, CEC)
+
+**Components**
+- `ubl-document` — root form container
+- `ubl-basic` — primitive fields (text, date, number, …)
+- `ubl-aggregate` — nested object group
+- `ubl-array` — repeatable list of items
+- `ubl-ref` — lazy-loaded nested reference
+
+## Project structure
+
+```
+src/app/
+├── form/
+│   ├── ubl/        # core form components
+│   └── helper/     # input, error, icon components
+├── service/        # schema resolution services + utilities
+└── model/          # TypeScript types and imported JSON schemas
+public/             # UBL 2.3 JSON schema files
+```
+
+## Tech stack
+
+- Angular 19 (standalone components, signals)
+- Reactive Forms
+- Jest + jest-preset-angular

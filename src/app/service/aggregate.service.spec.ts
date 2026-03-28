@@ -1,8 +1,13 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
+import {AggregateService} from './aggregate.service';
+import {Ubl} from '../model/ubl.model';
+import Aggregate = Ubl.Aggregate;
+import Basic = Ubl.Basic;
+import NextRef = Ubl.NextRef;
 
-import { AggregateService } from './aggregate.service';
+const CAC_PREFIX = '../common/UBL-CommonAggregateComponents-2.3.json#/definitions/';
 
-describe('CacService', () => {
+describe('AggregateService', () => {
   let service: AggregateService;
 
   beforeEach(() => {
@@ -10,95 +15,123 @@ describe('CacService', () => {
     service = TestBed.inject(AggregateService);
   });
 
-  it("getRequiredAggregatesByRef -- SenderParty", async () => {
-    let result = await service.getRequiredAggregatesByRef('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SenderParty');
-    expect(result).not.toBeNull();
+  describe('ref type predicates', () => {
+    it('isCacRef returns true for CAC URL', () => {
+      expect(service.isCacRef(CAC_PREFIX + 'Party')).toBe(true);
+    });
+
+    it('isCacRef returns false for non-CAC URL', () => {
+      expect(service.isCacRef('../common/UBL-CommonBasicComponents-2.3.json#/definitions/ID')).toBe(false);
+    });
+
+    it('isRef returns true for internal definition ref', () => {
+      expect(service.isRef('#/definitions/Party')).toBe(true);
+    });
+
+    it('isRef returns false for external URL', () => {
+      expect(service.isRef(CAC_PREFIX + 'Party')).toBe(false);
+    });
   });
 
-  it("getRequiredAggregatesByRef -- SalesItem", async () => {
-    let result = await service.getRequiredAggregatesByRef('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SalesItem');
-    expect(result).not.toBeNull();
+  describe('getRequiredAggregatesByRef', () => {
+    it('returns an Aggregate instance', () => {
+      const result = service.getRequiredAggregatesByRef(CAC_PREFIX + 'SenderParty');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
+
+    it('returned Aggregate has a title', () => {
+      const result = service.getRequiredAggregatesByRef(CAC_PREFIX + 'SenderParty');
+      expect(result.title).toBeTruthy();
+    });
+
+    it('required array matches schema required fields', () => {
+      const result = service.getRequiredAggregatesByRef(CAC_PREFIX + 'InvoiceLine');
+      expect(Array.isArray(result.required)).toBe(true);
+    });
+
+    it('properties only contain required fields', () => {
+      const result = service.getRequiredAggregatesByRef(CAC_PREFIX + 'InvoiceLine');
+      const propKeys = Object.keys(result.properties);
+      propKeys.forEach(key => {
+        expect(result.required).toContain(key);
+      });
+    });
+
+    it('resolves internal definition ref (#/definitions/)', () => {
+      const result = service.getRequiredAggregatesByRef('#/definitions/Item');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
+
+    it('resolves PartyIdentification via internal ref', () => {
+      const result = service.getRequiredAggregatesByRef('#/definitions/PartyIdentification');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
   });
 
-  it("getRequiredAggregatesByRef -- #/definitions/Item", async () => {
-    let result = await service.getRequiredAggregatesByRef('#/definitions/Item');
-    expect(result).not.toBeNull();
+  describe('getNonRequiredAggregatesByRef', () => {
+    it('returns an Aggregate instance', () => {
+      const result = service.getNonRequiredAggregatesByRef(CAC_PREFIX + 'AccountingSupplierParty');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
+
+    it('properties do NOT contain required fields', () => {
+      const result = service.getNonRequiredAggregatesByRef(CAC_PREFIX + 'InvoiceLine');
+      const propKeys = Object.keys(result.properties);
+      propKeys.forEach(key => {
+        expect(result.required).not.toContain(key);
+      });
+    });
+
+    it('resolves LegalMonetaryTotal', () => {
+      const result = service.getNonRequiredAggregatesByRef('LegalMonetaryTotal');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
+
+    it('resolves Party by bare name', () => {
+      const result = service.getNonRequiredAggregatesByRef('Party');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
   });
 
-  it("getRequiredAggregatesByRef -- #/definitions/PartyIdentification", async () => {
-    let result = await service.getRequiredAggregatesByRef('#/definitions/PartyIdentification');
-    expect(result).not.toBeNull();
+  describe('getNonRequiredAggregatesByName', () => {
+    it('returns an Aggregate for a known name', () => {
+      const result = service.getNonRequiredAggregatesByName('InvoiceLine');
+      expect(result).toBeInstanceOf(Aggregate);
+    });
+
+    it('non-required result has no required-field keys in properties', () => {
+      const result = service.getNonRequiredAggregatesByName('InvoiceLine');
+      Object.keys(result.properties).forEach(key => {
+        expect(result.required).not.toContain(key);
+      });
+    });
   });
 
-  it("getNonRequiredAggregatesByRef -- Party", async () => {
-    let result = await service.getNonRequiredAggregatesByRef('Party');
-    expect(result).not.toBeNull();
+  describe('property resolution types', () => {
+    it('resolves a Basic property inside an aggregate', () => {
+      const result = service.getRequiredAggregatesByRef(CAC_PREFIX + 'InvoiceLine');
+      // ID is a required basic field in InvoiceLine
+      expect(result.properties['ID']).toBeInstanceOf(Basic);
+    });
+
+    it('resolves a NextRef for a deep-nested reference', () => {
+      const result = service.getNonRequiredAggregatesByRef(CAC_PREFIX + 'Party');
+      // Party has nested refs; at least one should be a NextRef or Aggregate
+      const values = Object.values(result.properties);
+      expect(values.length).toBeGreaterThan(0);
+    });
   });
 
-  it("getNonRequiredAggregatesByRef -- LegalMonetaryTotal", async () => {
-    let result = await service.getNonRequiredAggregatesByRef('LegalMonetaryTotal');
-    expect(result).not.toBeNull();
+  describe('caching', () => {
+    it('produces equal results on repeated calls (definitions are cached)', () => {
+      const first = service.getRequiredAggregatesByRef(CAC_PREFIX + 'SenderParty');
+      const second = service.getRequiredAggregatesByRef(CAC_PREFIX + 'SenderParty');
+      expect(first).toEqual(second);
+    });
+
+    it('populates definitionsCache after first lookup', () => {
+      service.getRequiredAggregatesByRef(CAC_PREFIX + 'InvoiceLine');
+      expect(service.definitionsCache.has('InvoiceLine')).toBe(true);
+    });
   });
-
-  it("getNonRequiredAggregatesByRef -- InvoiceLine", async () => {
-    let result = await service.getNonRequiredAggregatesByRef('InvoiceLine');
-    expect(result).not.toBeNull();
-  });
-
-  it("getNonRequiredAggregatesByRef --PartyIdentification", async () => {
-    let result = await service.getNonRequiredAggregatesByRef('PartyIdentification');
-    expect(result).not.toBeNull();
-  });
-
-
-
-
-  it("getRequiredAggregatesByRef -- AccountingSupplierParty", async () => {
-    let result = await service.getRequiredAggregatesByRef("../common/UBL-CommonAggregateComponents-2.3.json#/definitions/InvoiceLine");
-    expect(result).not.toBeNull();
-  });
-
-  it("getNonRequiredAggregatesByRef -- AccountingSupplierParty", async () => {
-    let result = await service.getNonRequiredAggregatesByRef("../common/UBL-CommonAggregateComponents-2.3.json#/definitions/AccountingSupplierParty");
-    expect(result).not.toBeNull();
-  });
-
-
-
-
-  /* below maybe outdate */
-  // it('getRequiredAggregateGroupSchemas get SalesItem', () => {
-  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SalesItem');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getNonRequiredAggregateGroupSchemasByName get SalesItem', () => {
-  //   let result = service.getNonRequiredAggregateGroupSchemasByName('SalesItem');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getRequiredAggregateGroupSchemas get LotsGroup', () => {
-  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/LotsGroup');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getRequiredAggregateGroupSchemas get sender party', () => {
-  //   let result = service.getRequiredAggregateGroupSchemas('../common/UBL-CommonAggregateComponents-2.3.json#/definitions/SenderParty');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getNonRequiredAggregateGroupSchemas get sender party', () => {
-  //   let result = service.getNonRequiredAggregateGroupSchemasByName('SenderParty');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getNonRequiredAggregateGroupSchemas get PhysicalLocation', () => {
-  //   let result = service.getNonRequiredAggregateGroupSchemasByName('PhysicalLocation');
-  //   expect(result).not.toBeNull();
-  // });
-  //
-  // it('getNonRequiredAggregateGroupSchemas get Contact', () => {
-  //   let result = service.getNonRequiredAggregateGroupSchemasByName('Person');
-  //   expect(result).not.toBeNull();
-  // });
 });

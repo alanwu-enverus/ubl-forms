@@ -10,7 +10,6 @@ import {AddComponent} from "./form/helper/add.component";
 import {RemoveComponent} from "./form/helper/remove.component";
 
 
-
 @Component({
     selector: 'app-root',
     imports: [ReactiveFormsModule, JsonPipe, ThreeDotsComponent, ExpandComponent, UpComponent, AddComponent, RemoveComponent, FormsModule, NgClass],
@@ -20,66 +19,51 @@ import {RemoveComponent} from "./form/helper/remove.component";
 export class AppComponent implements OnInit {
   showDescription = true;
   jsonResult: any;
-  isLoadSample = true
+  isLoadSample = true;
   docTypes: string[] = getAllDocTypes().sort((a, b) => a.localeCompare(b));
   isLoadingSample = signal(false);
 
   vcr = viewChild('container', {read: ViewContainerRef});
 
-  selectedDocType = "Invoice";
   ublType = 'Invoice';
   data: any;
 
   async ngOnInit(): Promise<void> {
-    if(window.innerWidth < 900) {
+    if (window.innerWidth < 900) {
       this.showDescription = false;
     }
     await this.getSampleData();
-
-    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
+    this.setupDocumentComponent();
   }
-
 
   create() {
     this.isLoadSample = false;
     this.data = {};
-    this.ublType = this.selectedDocType;
-
-    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
-    // this.jsonResult = this.data;
+    this.setupDocumentComponent();
   }
 
   async loadSample() {
     this.isLoadSample = true;
     await this.getSampleData();
-
-    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
-
-    // this.ublType = this.selectedDocType;
-    // this.jsonResult = this.data;
+    this.setupDocumentComponent();
   }
 
-
   async onSelectDoc(target: any) {
-    this.selectedDocType = target.value;
+    this.ublType = target.value;
     if (this.isLoadSample) {
       await this.getSampleData();
     } else {
       this.data = {};
     }
-
-    this.setupDocumentComponent(this.vcr(), this.ublType, this.data);
-
-    // this.ublType = this.selectedDocType;
-    // this.jsonResult = this.data;
+    this.setupDocumentComponent();
   }
 
   onDataChange(data: any) {
-    this.jsonResult = data
+    this.jsonResult = data;
   }
 
   protected readonly removeEmpty = removeEmpty;
-  year =  new Date().getFullYear();
+  year = new Date().getFullYear();
 
   onClickMenu() {
     this.showDescription = !this.showDescription;
@@ -92,22 +76,17 @@ export class AppComponent implements OnInit {
     } catch (e) {
       this.data = {};
     }
-
     this.isLoadingSample.set(false);
   }
 
-  private setupDocumentComponent(vcr?: ViewContainerRef, docTypeName?: string, model?: any) {
+  private setupDocumentComponent() {
     if (this.vcr()) {
-      this.vcr()?.clear()
-      let ref = this.vcr()?.createComponent(DocumentComponent);
-      ref.instance.docTypeName = docTypeName;
-      ref.instance.model = model;
-      ref.instance.onDataChange.subscribe((data) => {
-        this.onDataChange(data);
-      });
-
-      this.jsonResult = model;
+      this.vcr()?.clear();
+      const ref = this.vcr()?.createComponent(DocumentComponent);
+      ref.instance.docTypeName = this.ublType;
+      ref.instance.model = this.data;
+      ref.instance.onDataChange.subscribe((data) => this.onDataChange(data));
+      this.jsonResult = this.data;
     }
   }
-
 }

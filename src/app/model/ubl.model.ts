@@ -47,7 +47,7 @@ export namespace Ubl {
   export class Array  {
     "title": string;
     "description": string;
-    items: Basic | Aggregate | NextRef;
+    items: Basic | Extension | Aggregate | NextRef;
   }
 
   export class ExtensionContent  {

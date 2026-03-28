@@ -203,7 +203,6 @@ export class AggregateComponent implements OnInit {
     this.getNonRequiredSchema();
     this.nonRequired.forEach((name) => {
       // is this logic correct? is possible isLoaded is false but the component is already existing to cause duplicate?
-      console.log('name:', name);
       if (!this.loadedComponents.filter(c => c.isLoaded).map(c => c.name).includes(name)) {
         const schema = this.schema.properties[name];
         const data = this.model ? this.model[name] : {};
