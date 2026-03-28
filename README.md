@@ -3,7 +3,11 @@
   &nbsp;UBL Forms
 </h1>
 
-[![test](https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml/badge.svg)](https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml)
+<p align="center">
+  <a href="https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml">
+    <img src="https://github.com/alanwu-enverus/ubl-forms/actions/workflows/test.yml/badge.svg" alt="test"/>
+  </a>
+</p>
 
 A dynamic form generator for [Universal Business Language (UBL) 2.3](https://docs.oasis-open.org/ubl/os-UBL-2.3/UBL-2.3.html) documents, built with Angular 19.
 
